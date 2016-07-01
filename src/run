@@ -1,0 +1,48 @@
+#!/bin/bash
+# This is a Bash script to run main.m from the command line, in the
+# background using Matlab. Pass the fully qualified filename of an
+# input file or several input files as arguments. If -p is passed, 
+# the run will be parallelized.
+#
+# Timothy Crone (tjcrone@gmail.com)
+
+# parse arguments
+parallel=0
+numFiles=1
+while [[ $# > 0 ]]; do
+  key="$1"
+  case $key in
+    "-p") # set parallel flag
+    parallel=1
+    ;;
+    *) # anything else is considered an input file
+    fileList[numFiles]=$key
+    numFiles=$((numFiles+1))
+    ;;
+  esac
+  shift
+done
+numFiles=$((numFiles-1))
+
+# loop though input files
+for i in $(seq 1 $numFiles); do
+  infile=${fileList[$i]}
+  #echo $infile
+
+  # create log file and temporary run file
+  logfile="${infile%_*}_out.log"
+  tmpfile=`mktemp $infile.XXXXXX`
+
+  # populate temporary file
+  echo "run('$infile');" > $tmpfile
+
+  # run matlab in background in parallel or sequentially
+  EXE=`which matlab`
+  nohup $EXE -nodesktop -nosplash < $tmpfile > $logfile 2>&1 &
+  if [[ parallel -eq "0" ]]; then
+    wait
+  fi
+
+  # delete temporary file
+  rm $tmpfile
+done
