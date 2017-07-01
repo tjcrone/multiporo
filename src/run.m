@@ -27,7 +27,7 @@ P1 = P;
 mu1 = dynvisc(T1); %fluid viscosity
 rhof1 = interptim(PP,TT,RHO,P1./100000,T1); %fluid density
 cf1 = interptim(PP,TT,CP,P1./100000,T1); %fluid heat capacity
-Se1 = T1*0+1;
+Se1 = T1*0+1e-11;
 
 % compute boundary fluid properties
 rhobt = interptim(PP,TT,RHO,Tbt(1,:)*0+Ptop./100000,Tbt(1,:));
