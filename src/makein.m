@@ -30,7 +30,7 @@ z = linspace(d/2,(nz-1)*d,nz);
 [~,Z] = meshgrid(x,z);
 
 % some constants
-rhom = 2950; % rock or grain density (basalt)
+rhom = 2900; % rock or grain density (basalt)
 cm = 1004; % rock heat capacity (basalt)
 lamdam = 2; % rock thermal conductivity (basalt)
 alpham = 2e-5; % rock thermal expansion coefficient (basalt)
