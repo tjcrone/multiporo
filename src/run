@@ -34,7 +34,7 @@ for i in $(seq 1 $numFiles); do
   tmpfile=`mktemp $infile.XXXXXX`
 
   # populate temporary file
-  echo "run('$infile');" > $tmpfile
+  echo "main('$infile');" > $tmpfile
 
   # run matlab in background in parallel or sequentially
   EXE=`which matlab`
