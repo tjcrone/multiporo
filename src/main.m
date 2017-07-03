@@ -1,4 +1,4 @@
-function [] = run(inputfile)
+function [] = main(inputfile)
 % This is the main poroelastic convection model function. It creates and loads the
 % input variables specified by INPUTFILE, then commences a convection run
 % saving the outputs to a file with the same prefix as the input file.
@@ -27,7 +27,7 @@ P1 = P;
 mu1 = dynvisc(T1); %fluid viscosity
 rhof1 = interptim(PP,TT,RHO,P1./100000,T1); %fluid density
 cf1 = interptim(PP,TT,CP,P1./100000,T1); %fluid heat capacity
-Se1 = T1*0+1e-11;
+Se1 = T1*0+1e-32;
 
 % compute boundary fluid properties
 rhobt = interptim(PP,TT,RHO,Tbt(1,:)*0+Ptop./100000,Tbt(1,:));
@@ -43,41 +43,45 @@ cfbl = interptim(PP,TT,CP,P1(:,1)  ./100000,Tbl(:,1));
 [qx1,qz1] = darcy(nx,nz,P1,rhof1,rhobb,kx,kz,mu1,g,d,Pbt,Pbb,Pbr,Pbl,T1);
 
 % initialize tout (used for debugging)
-tout = zeros(1,nout);
+%tout = zeros(1,nout);
+
+% get output filename base
+underloc = strfind(inputfile, '_');
+outfilenamebase = inputfile(1:underloc(end)-1);
 
 % delete previous output file if it exists
-underloc = strfind(inputfile, '_');
-outfilename = [inputfile(1:underloc(end)-1), '_out.mat'];
-if exist(outfilename, 'file') == 2
-  reply = input('Output file exists. Press ''y'' to overwrite. ','s');
-  if strcmp(reply, 'y')
-    system(sprintf('rm %s', outfilename));
-  else
-    return
-  end
-end
+%underloc = strfind(inputfile, '_');
+%outfilename = [inputfile(1:underloc(end)-1), '_out.mat'];
+%if exist(outfilename, 'file') == 2
+%  reply = input('Output file exists. Press ''y'' to overwrite. ','s');
+%  if strcmp(reply, 'y')
+%    system(sprintf('rm %s', outfilename));
+%  else
+%    return
+%  end
+%end
 
 % open output file object
-outfileobj = matfile(outfilename);
+%outfileobj = matfile(outfilename);
 
 % initialize output file variables in output file
-outfileobj.rhofout = zeros(nz,nx,nout);
-outfileobj.cfout = zeros(nz,nx,nout);
-outfileobj.Tout = zeros(nz,nx,nout);
-outfileobj.Pout = zeros(nz,nx,nout);
-outfileobj.crackedout = logical(zeros(nz,nx,nout));
-outfileobj.qxout = zeros(nz,nx+1,nout);
-outfileobj.qzout = zeros(nz+1,nx,nout);
-outfileobj.tout = tout;
+%outfileobj.rhofout = zeros(nz,nx,nout);
+%outfileobj.cfout = zeros(nz,nx,nout);
+%outfileobj.Tout = zeros(nz,nx,nout);
+%outfileobj.Pout = zeros(nz,nx,nout);
+%outfileobj.crackedout = logical(zeros(nz,nx,nout));
+%outfileobj.qxout = zeros(nz,nx+1,nout);
+%outfileobj.qzout = zeros(nz+1,nx,nout);
+%outfileobj.tout = tout;
 
 % store t=1 output
-outfileobj.rhofout(:,:,1) = rhof1;
-outfileobj.cfout(:,:,1) = cf1;
-outfileobj.Tout(:,:,1) = T1;
-outfileobj.Pout(:,:,1) = P1;
-outfileobj.qxout(:,:,1) = qx1;
-outfileobj.qzout(:,:,1) = qz1;
-outfileobj.crackedout(:,:,1) = cracked;
+%outfileobj.rhofout(:,:,1) = rhof1;
+%outfileobj.cfout(:,:,1) = cf1;
+%outfileobj.Tout(:,:,1) = T1;
+%outfileobj.Pout(:,:,1) = P1;
+%outfileobj.qxout(:,:,1) = qx1;
+%outfileobj.qzout(:,:,1) = qz1;
+%outfileobj.crackedout(:,:,1) = cracked;
 
 % create tentative values at t=2
 rhof2 = rhof1;
@@ -88,6 +92,13 @@ Se2 = Se1;
 mu2 = mu1;
 P2 = P1;
 T2 = T1;
+
+% store t=1 output
+t_years = 0;
+outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
+tout = 0;
+save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 'tout');
+nout = 1;
 
 % initialize Tmax
 Tmax = 0;
@@ -122,6 +133,13 @@ for i = 1:nstep-1
     t(i+1)=t(i)+dt;
   else
     % use t vector for dt
+    dt = t(i+1)-t(i);
+    error('don''t do this.');
+  end
+
+  % if crossing over outputinterval, adjust dt
+  if t(i+1) > outputinterval*nout
+    t(i+1) = outputinterval*nout;
     dt = t(i+1)-t(i);
   end
 
@@ -215,25 +233,43 @@ for i = 1:nstep-1
 
   % track Tmax
   Tmax = max([Tmax max(max(T1))]);
-    
-  % write outputs to outfile object
-  if mod(i,nstep/nout) == 0;
-    tout(i/(nstep/nout)+1) = t(i+1);
-    outfileobj.rhofout(:,:,i/(nstep/nout)+1) = rhof2;
-    outfileobj.cfout(:,:,i/(nstep/nout)+1) = cf2;
-    outfileobj.Tout(:,:,i/(nstep/nout)+1) = T2;
-    outfileobj.Pout(:,:,i/(nstep/nout)+1) = P2;
-    outfileobj.qxout(:,:,i/(nstep/nout)+1) = qx2;
-    outfileobj.qzout(:,:,i/(nstep/nout)+1) = qz2;
-    outfileobj.crackedout(:,:,i/(nstep/nout)+1) = cracked;
-    outfileobj.tout(1,i/(nstep/nout)+1) = t(i+1);
+
+  % write outputs to file
+  if t(i+1) == outputinterval*nout
+    t_years = outputinterval*nout/60/60/24/365;
+    outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
+    tout = t(i+1);
+    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 'tout');
+    nout = nout + 1;
     if Tmax > Thot + 0.01
       error('Tmax is greater than Thot.');
     end
+
+  % output information
+  fprintf('\nStep: %i\n', i);
+  fprintf('Year: %i\n', t_years);
+  fprintf('Average steps/year: %.0f\n', i/t_years);
+
   end
+
+  % write outputs to outfile object
+  %if mod(i,nstep/nout) == 0;
+  %  tout(i/(nstep/nout)+1) = t(i+1);
+  %  outfileobj.rhofout(:,:,i/(nstep/nout)+1) = rhof2;
+  %  outfileobj.cfout(:,:,i/(nstep/nout)+1) = cf2;
+  %  outfileobj.Tout(:,:,i/(nstep/nout)+1) = T2;
+  %  outfileobj.Pout(:,:,i/(nstep/nout)+1) = P2;
+  %  outfileobj.qxout(:,:,i/(nstep/nout)+1) = qx2;
+  %  outfileobj.qzout(:,:,i/(nstep/nout)+1) = qz2;
+  %  outfileobj.crackedout(:,:,i/(nstep/nout)+1) = cracked;
+  %  outfileobj.tout(1,i/(nstep/nout)+1) = t(i+1);
+  %  if Tmax > Thot + 0.01
+  %    error('Tmax is greater than Thot.');
+  %  end
+  %end
     
   % update progress bar
-  progressbar(i,nstep-1,mfilename, 'working ...');
+  %progressbar(i,nstep-1,mfilename, 'working ...');
 end
 
 % print timing info

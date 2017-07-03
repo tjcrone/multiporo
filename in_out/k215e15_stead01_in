@@ -5,18 +5,18 @@ steady          1 % set to unity for a steady state run. this turns cracking off
 
 % restart info
 restart         0
-restartfile     '~/research/crackingfronts/in_out/k215e16_stead02_out.mat'
+restartfile     '~/research/crackingfronts/in_out/k215e15_stead01_out.mat'
 
 % timing
 adaptivetime    1 % set to unity for adaptive time stepping
-nstep           2000 % number of steps to complete if timing is adaptive
-outputinterval	100 % interval between steps to output. must be a devisor of nstep
-stepfraction	0.1
+nstep           20000000 % number of steps to complete if timing is adaptive
+outputinterval	100 % interval between output files (years)
+stepfraction	0.0001
 maxpicard	1
 
 % geometry
 nx		200 % number of grid cells in x-direction (columns)
-nz		400 % number of grid cells in z-direction (rows)
+nz		50 % number of grid cells in z-direction (rows)
 d		20 % grid cell size (uniform grid, meters)
 
 % cracking front info
@@ -27,13 +27,13 @@ Thot            600 % temperature (C)
 Tcold           0 % temperature (C)
 
 % permeability
-kon             2.15e-16 % 1e-16, 2.15e-16, 4.64e-16, 1e-15, 2.15, 4.64, 1e-14
+kon             2.15e-15 % 1e-16, 2.15e-16, 4.64e-16, 1e-15, 2.15, 4.64, 1e-14
 koff            1e-32
 
 % boundary conditions
 Ptop		20e6 % top pressure condition
-Tbottomtype     0 % 0=Neumann, 1=Dirichlet
-Tbottomvalue    0 % temperature at or heat flux (W/m) through bottom boundary
+Tbottomtype     1 % 0=Neumann, 1=Dirichlet
+Tbottomvalue    600 % temperature at or heat flux (W/m) through bottom boundary
 Ttopconduction  1 % set to unity for conduction on top boundary
 
 % fluid and rock properties

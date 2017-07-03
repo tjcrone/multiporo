@@ -8,7 +8,7 @@ function [tmpfilename] = makein(inputfile)
 % read input file
 readinput(inputfile);
 
-% time stepping 
+% time stepping information
 if adaptivetime==1
     t = zeros(1,nstep); % initialize t vector for adaptive time stepping
 else
@@ -17,12 +17,13 @@ else
     t = 0:stepsize:runtime-stepsize; % create time vector built from stepsize and runtime
     nstep = length(t); % number of steps required in model run
 end
-nout = nstep/outputinterval; % number of steps to output (must be divisor of nstep)
+%nout = nstep/outputinterval; % number of steps to output (must be divisor of nstep)
+outputinterval = outputinterval*365*24*60*60; % convert output interval in years to seconds
 
 % check nout
-if mod(nstep,nout) ~= 0 || mod(nout,1) ~= 0
-   error('Output step number is not an integer. Check nstep and outputinterval.');
-end
+%if mod(nstep,nout) ~= 0 || mod(nout,1) ~= 0
+%   error('Output step number is not an integer. Check nstep and outputinterval.');
+%end
 
 % domain geometry
 x = linspace(d/2,(nx-1)*d,nx);
@@ -43,7 +44,7 @@ cracked(Z>frontdepth) = 0;
 
 % initial temperature conditions
 rng('default');
-T = Z*0+Tcold+rand(nz,nx);
+T = Z*0+Tcold+rand(nz,nx)*Thot/2;
 T(~cracked) = Thot;
 
 % restart temperature and uncracked fields if required
@@ -126,7 +127,7 @@ inoutdir = '../in_out/';
 [status, tmpfilename] = system(sprintf('mktemp %sinput.XXXXXX', inoutdir));
 
 % save variables to an input .mat file
-save(tmpfilename(1:end-1),'adaptivetime','t','nstep','nout','nx','nz','d','cm', ...
+save(tmpfilename(1:end-1),'adaptivetime','t','nstep','outputinterval','nx','nz','d','cm', ...
   'lamdam','phi','rhom','kx','kz','g','T','P','Tbb','Tbl','Tbr','Tbt','Ptop','Pbt', ...
   'Pbb','Pbl','Pbr','alpham','rhobound','Pbound','Ttopconduction','cracked','Thot', ...
   'kon','koff','Z','steady','maxpicard','picardthresh','tdamp','stepfraction', ...
