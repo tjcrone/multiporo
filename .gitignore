@@ -1,2 +1,3 @@
-in_out/*_out*
+*_out.mat
+*_out_*
 in_out/playfield.m
