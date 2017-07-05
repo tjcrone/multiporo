@@ -5,13 +5,13 @@ steady          1 % set to unity for a steady state run. this turns cracking off
 
 % restart info
 restart         1
-restartfile     '~/research/crackingfronts/in_out/k215e15/k215e15_stead02_out.mat'
+restartfile     '~/research/crackingfronts/in_out/k100e14/k100e14_stead02_out.mat'
 
 % timing
 adaptivetime    1 % set to unity for adaptive time stepping
 nstep           10000000 % number of steps to complete if timing is adaptive
 outputinterval	100 % interval between steps to output. must be a devisor of nstep
-stepfraction	0.01
+stepfraction	0.0022
 maxpicard	1
 
 % geometry
@@ -27,7 +27,7 @@ Thot            600 % temperature (C)
 Tcold           0 % temperature (C)
 
 % permeability
-kon             2.15e-15 % 1e-16, 2.15e-16, 4.64e-16, 1e-15, 2.15, 4.64, 1e-14
+kon             1e-14 % 1e-16, 2.15e-16, 4.64e-16, 1e-15, 2.15, 4.64, 1e-14
 koff            1e-32
 
 % boundary conditions
