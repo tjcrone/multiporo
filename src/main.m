@@ -105,6 +105,7 @@ Tmax = 0;
 
 % start timer
 tic;
+etime = toc;
 
 % time loop
 for i = 1:nstep-1
@@ -242,13 +243,21 @@ for i = 1:nstep-1
     save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 'tout');
     nout = nout + 1;
     if Tmax > Thot + 0.01
-      error('Tmax is greater than Thot.');
+      %error('Tmax is greater than Thot.');
+      fprintf('\nAdjusting T. Tmax: %.2f\n', Tmax);
+      T1(T1>Thot) = Thot;
+      T2(T2>Thot) = Thot;
     end
 
     % output information
-    fprintf('\nStep: %i\n', i);
+    laptime = toc-etime;
+    slashloc = strfind(outfilename, '/');
+    fprintf('\nFile %s saved\n', outfilename(slashloc(end)+1:end));
     fprintf('Year: %i\n', t_years);
+    fprintf('Step: %i\n', i);
     fprintf('Average steps/year: %.0f\n', i/t_years);
+    fprintf('Wall time per %i years: %0.f s\n', outputinterval/60/60/24/365, laptime);
+    etime = toc;
   end
 
   % stop at stopyear
@@ -278,14 +287,16 @@ end
 
 % print timing info
 etime = toc;
-%fprintf('\n%s writen.\n\n', outfilename);
-fprintf('Total wall time\t\t\t%.1f seconds\n',etime);
+fprintf('\nSimulation complete\n');
+fprintf('Total wall time\t\t\t%.1f s\n',etime);
+fprintf('Total model time\t\t%.1f years\n', tout/60/60/24/365);
 fprintf('Number of model steps\t\t%i steps\n',i+1);
-fprintf('Wall time per step\t\t%.2f seconds\n',etime/nstep);
-fprintf('Total model time\t\t%.1f years\n', tout(end)/60/60/24/365);
-daysperstep = mean(diff(tout(end-round(length(tout)/4):end)))/60/60/24;
-if daysperstep>365
-  fprintf('Average model time per step\t%.2f years\n',daysperstep/365);
-else
-  fprintf('Average model time per step\t%.1f days\n',daysperstep);
-end
+fprintf('Average wall time per step\t%.2f s\n',etime/(i+1));
+fprintf('Average wall time per %i years\t%0.2f s\n', outputinterval/60/60/24/365, ...
+  etime/tout*outputinterval);
+%daysperstep = mean(diff(tout(end-round(length(tout)/4):end)))/60/60/24;
+%if daysperstep>365
+%  fprintf('Average model time per step\t%.2f years\n',daysperstep/365);
+%else
+%  fprintf('Average model time per step\t%.1f days\n',daysperstep);
+%end
