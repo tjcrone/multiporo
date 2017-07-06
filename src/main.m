@@ -144,7 +144,7 @@ for i = 1:nstep-1
   end
 
   % picard iterations
-  T2last = T1;
+  %T2last = T1;
   for j = 1:maxpicard
     % compute beta for temperature equation
     beta2 = reshape(rhom.*cm.*(1-phi) + rhof2.*cf2.*phi,nx*nz,1);
@@ -219,7 +219,7 @@ for i = 1:nstep-1
     %end
 
     % redefine T2last as T2
-    T2last = T2;
+    %T2last = T2;
 
     % break after max picard iterations
     if j==maxpicard
@@ -245,11 +245,15 @@ for i = 1:nstep-1
       error('Tmax is greater than Thot.');
     end
 
-  % output information
-  fprintf('\nStep: %i\n', i);
-  fprintf('Year: %i\n', t_years);
-  fprintf('Average steps/year: %.0f\n', i/t_years);
+    % output information
+    fprintf('\nStep: %i\n', i);
+    fprintf('Year: %i\n', t_years);
+    fprintf('Average steps/year: %.0f\n', i/t_years);
+  end
 
+  % stop at stopyear
+  if t_years == stopyear
+    break;
   end
 
   % write outputs to outfile object
@@ -274,7 +278,7 @@ end
 
 % print timing info
 etime = toc;
-fprintf('\n%s writen.\n\n', outfilename);
+%fprintf('\n%s writen.\n\n', outfilename);
 fprintf('Total wall time\t\t\t%.1f seconds\n',etime);
 fprintf('Number of model steps\t\t%i steps\n',i+1);
 fprintf('Wall time per step\t\t%.2f seconds\n',etime/nstep);
