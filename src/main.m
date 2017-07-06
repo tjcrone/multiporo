@@ -42,46 +42,9 @@ cfbl = interptim(PP,TT,CP,P1(:,1)  ./100000,Tbl(:,1));
 % compute darcy velocities (t=1)
 [qx1,qz1] = darcy(nx,nz,P1,rhof1,rhobb,kx,kz,mu1,g,d,Pbt,Pbb,Pbr,Pbl,T1);
 
-% initialize tout (used for debugging)
-%tout = zeros(1,nout);
-
 % get output filename base
 underloc = strfind(inputfile, '_');
 outfilenamebase = inputfile(1:underloc(end)-1);
-
-% delete previous output file if it exists
-%underloc = strfind(inputfile, '_');
-%outfilename = [inputfile(1:underloc(end)-1), '_out.mat'];
-%if exist(outfilename, 'file') == 2
-%  reply = input('Output file exists. Press ''y'' to overwrite. ','s');
-%  if strcmp(reply, 'y')
-%    system(sprintf('rm %s', outfilename));
-%  else
-%    return
-%  end
-%end
-
-% open output file object
-%outfileobj = matfile(outfilename);
-
-% initialize output file variables in output file
-%outfileobj.rhofout = zeros(nz,nx,nout);
-%outfileobj.cfout = zeros(nz,nx,nout);
-%outfileobj.Tout = zeros(nz,nx,nout);
-%outfileobj.Pout = zeros(nz,nx,nout);
-%outfileobj.crackedout = logical(zeros(nz,nx,nout));
-%outfileobj.qxout = zeros(nz,nx+1,nout);
-%outfileobj.qzout = zeros(nz+1,nx,nout);
-%outfileobj.tout = tout;
-
-% store t=1 output
-%outfileobj.rhofout(:,:,1) = rhof1;
-%outfileobj.cfout(:,:,1) = cf1;
-%outfileobj.Tout(:,:,1) = T1;
-%outfileobj.Pout(:,:,1) = P1;
-%outfileobj.qxout(:,:,1) = qx1;
-%outfileobj.qzout(:,:,1) = qz1;
-%outfileobj.crackedout(:,:,1) = cracked;
 
 % create tentative values at t=2
 rhof2 = rhof1;
@@ -145,7 +108,6 @@ for i = 1:nstep-1
   end
 
   % picard iterations
-  %T2last = T1;
   for j = 1:maxpicard
     % compute beta for temperature equation
     beta2 = reshape(rhom.*cm.*(1-phi) + rhof2.*cf2.*phi,nx*nz,1);
@@ -219,9 +181,6 @@ for i = 1:nstep-1
     %  break;
     %end
 
-    % redefine T2last as T2
-    %T2last = T2;
-
     % break after max picard iterations
     if j==maxpicard
       break;
@@ -264,25 +223,6 @@ for i = 1:nstep-1
   if t_years == stopyear
     break;
   end
-
-  % write outputs to outfile object
-  %if mod(i,nstep/nout) == 0;
-  %  tout(i/(nstep/nout)+1) = t(i+1);
-  %  outfileobj.rhofout(:,:,i/(nstep/nout)+1) = rhof2;
-  %  outfileobj.cfout(:,:,i/(nstep/nout)+1) = cf2;
-  %  outfileobj.Tout(:,:,i/(nstep/nout)+1) = T2;
-  %  outfileobj.Pout(:,:,i/(nstep/nout)+1) = P2;
-  %  outfileobj.qxout(:,:,i/(nstep/nout)+1) = qx2;
-  %  outfileobj.qzout(:,:,i/(nstep/nout)+1) = qz2;
-  %  outfileobj.crackedout(:,:,i/(nstep/nout)+1) = cracked;
-  %  outfileobj.tout(1,i/(nstep/nout)+1) = t(i+1);
-  %  if Tmax > Thot + 0.01
-  %    error('Tmax is greater than Thot.');
-  %  end
-  %end
-    
-  % update progress bar
-  %progressbar(i,nstep-1,mfilename, 'working ...');
 end
 
 % print timing info
@@ -294,9 +234,3 @@ fprintf('Number of model steps\t\t%i steps\n',i+1);
 fprintf('Average wall time per step\t%.2f s\n',etime/(i+1));
 fprintf('Average wall time per %i years\t%0.2f s\n', outputinterval/60/60/24/365, ...
   etime/tout*outputinterval);
-%daysperstep = mean(diff(tout(end-round(length(tout)/4):end)))/60/60/24;
-%if daysperstep>365
-%  fprintf('Average model time per step\t%.2f years\n',daysperstep/365);
-%else
-%  fprintf('Average model time per step\t%.1f days\n',daysperstep);
-%end
