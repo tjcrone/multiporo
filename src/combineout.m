@@ -8,7 +8,6 @@ for file = files'
   slashloc = findstr('/',basename);
   dirname = basename(1:slashloc(end));
   filename = [dirname, file.name];
-  disp(filename)
   load(filename);
   if i==1
     Tout = T2;
