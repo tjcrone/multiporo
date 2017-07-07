@@ -59,18 +59,23 @@ T2 = T1;
 % store t=1 output
 t_years = 0;
 outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
-tout = 0;
-save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 'tout');
+t = 0;
+save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
 nout = 1;
 
 % initialize Tmax
-Tmax = 0;
+Tmax = max(max(T1));
+deltaTmax = 0;
 
 % start timer
 tic;
 etime = toc;
 
+maxdT = 0.1;
+dtadjust = 0;
+
 % time loop
+j = 0;
 for i = 1:nstep-1
 
   % if this is not a steady state run, crack
@@ -84,31 +89,58 @@ for i = 1:nstep-1
   end
 
   % set dt using adaptive or predefined time stepping
-  if adaptivetime==1
+  %if adaptivetime==1
     % adaptive time stepping based on CFL condition
-    maxV = max(max(max(qx2)),max(max(qz2)));
-    if i==1
-      dt = 24*3600;
-    elseif i<10
-      dt = min([0.001*d/maxV 0.001*d^2/1e-6]);
-    else
-      dt = min([stepfraction*d/maxV stepfraction*d^2/1e-6]);
-    end
-    t(i+1)=t(i)+dt;
-  else
+  %  maxV = max(max(max(qx2)),max(max(qz2)));
+  %  if i==1
+  %    dt = 24*3600;
+  %  elseif i<10
+  %    dt = min([0.001*d/maxV 0.001*d^2/1e-6]);
+  %  else
+  %    dt = min([stepfraction*d/maxV stepfraction*d^2/1e-6]);
+  %  end
+  %  t(i+1)=t(i)+dt;
+  %else
     % use t vector for dt
-    dt = t(i+1)-t(i);
-    error('don''t do this.');
+  %  dt = t(i+1)-t(i);
+  %  error('don''t do this.');
+  %end
+
+  % adaptive dt based on dT
+  j = j + 1;
+  if i == 1
+    dt = 3600;
+    fprintf('Starting dt: %0.6f h\n', dt/60/60);
   end
 
+  if dtadjust == 1
+    dt = dtlast;
+    dtadjust = 0;
+    fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+  end
+
+  if Tmax > Thot + 1 || deltaTmax > maxdT
+    dt = dt*0.8;
+    fprintf('Reducing dt to: %0.6f h\n', dt/60/60);
+    fprintf('Tmax: %0.2f\n', Tmax);
+  elseif j == 100
+    dt = dt*1.1;
+    j = 0;
+    fprintf('Increasing dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+  end
+  t2 = t+dt;
+
   % if crossing over outputinterval, adjust dt
-  if t(i+1) > outputinterval*nout
-    t(i+1) = outputinterval*nout;
-    dt = t(i+1)-t(i);
+  if t2 > outputinterval*nout
+    dtlast = dt;
+    dtadjust = 1;
+    t2 = outputinterval*nout;
+    dt = t2-t;
+    fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
   end
 
   % picard iterations
-  for j = 1:maxpicard
+  %for j = 1:maxpicard
     % compute beta for temperature equation
     beta2 = reshape(rhom.*cm.*(1-phi) + rhof2.*cf2.*phi,nx*nz,1);
         
@@ -133,6 +165,16 @@ for i = 1:nstep-1
     %T2int(T2int<0) = 0; % kluge to prevent negative temperatures
     T2(T2<0) = 0; % kluge to prevent negative temperatures
     %T2(T2>Thot) = Thot; % kluge to prevent overshoots
+
+    % if max of T2 is greater than Thot, start step over
+    Tmax = max(max(T2));
+    deltaTmax = max(max(T2-T1));
+    if Tmax > Thot + 1 || deltaTmax > maxdT
+      %disp(Tmax);
+      %keyboard;
+      i = i - 1;
+      continue;
+    end
 
     % damping
     %tdamp = min([j*0.04 0.4]);
@@ -182,31 +224,28 @@ for i = 1:nstep-1
     %end
 
     % break after max picard iterations
-    if j==maxpicard
-      break;
-    end
-  end
+    %if j==maxpicard
+    %  break;
+    %end
+  %end
 
   % shift variables
   P1 = P2;
   T1 = T2;   
-
-  % track Tmax
-  Tmax = max([Tmax max(max(T1))]);
+  t = t2;
 
   % write outputs to file
-  if t(i+1) == outputinterval*nout
+  if t2 == outputinterval*nout
     t_years = outputinterval*nout/60/60/24/365;
     outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
-    tout = t(i+1);
-    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 'tout');
+    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
     nout = nout + 1;
-    if Tmax > Thot + 0.01
+    %if Tmax > Thot + 0.01
       %error('Tmax is greater than Thot.');
-      fprintf('\nAdjusting T. Tmax: %.2f\n', Tmax);
-      T1(T1>Thot) = Thot;
-      T2(T2>Thot) = Thot;
-    end
+    %  fprintf('\nAdjusting T. Tmax: %.2f\n', Tmax);
+    %  T1(T1>Thot) = Thot;
+    %  T2(T2>Thot) = Thot;
+    %end
 
     % output information
     laptime = toc-etime;
@@ -215,7 +254,7 @@ for i = 1:nstep-1
     fprintf('Year: %i\n', t_years);
     fprintf('Step: %i\n', i);
     fprintf('Average steps/year: %.0f\n', i/t_years);
-    fprintf('Wall time per %i years: %0.f s\n', outputinterval/60/60/24/365, laptime);
+    fprintf('Wall time per %i years: %0.f s\n\n', outputinterval/60/60/24/365, laptime);
     etime = toc;
   end
 
