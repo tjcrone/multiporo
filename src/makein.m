@@ -9,14 +9,14 @@ function [tmpfilename] = makein(inputfile)
 readinput(inputfile);
 
 % time stepping information
-if adaptivetime==1
-    t = zeros(1,nstep); % initialize t vector for adaptive time stepping
-else
-    stepsize = 1e5; % step size in seconds
-    runtime = 3e7; % total run time in seconds (3e9 is about 100 years)
-    t = 0:stepsize:runtime-stepsize; % create time vector built from stepsize and runtime
-    nstep = length(t); % number of steps required in model run
-end
+%if adaptivetime==1
+%    t = zeros(1,nstep); % initialize t vector for adaptive time stepping
+%else
+%    stepsize = 1e5; % step size in seconds
+%    runtime = 3e7; % total run time in seconds (3e9 is about 100 years)
+%    t = 0:stepsize:runtime-stepsize; % create time vector built from stepsize and runtime
+%    nstep = length(t); % number of steps required in model run
+%end
 %nout = nstep/outputinterval; % number of steps to output (must be divisor of nstep)
 outputinterval = outputinterval*365*24*60*60; % convert output interval in years to seconds
 
@@ -44,7 +44,9 @@ cracked(Z>frontdepth) = 0;
 
 % initial temperature conditions
 rng('default');
-T = Z*0+Tcold+rand(nz,nx)*Thot/2;
+%T = Z*0+Tcold+rand(nz,nx)*Thot/2;
+T = repmat(-sin(linspace(0,1,nx)*2*pi*8.5)*(min(min(Z/(d*nz)*Thot))), nz,1) + ...
+  Z/(d*nz)*Thot + rand(nz,nx);
 T(~cracked) = Thot;
 
 % restart temperature and uncracked fields if required
@@ -127,8 +129,8 @@ inoutdir = '../in_out/';
 [status, tmpfilename] = system(sprintf('mktemp %sinput.XXXXXX', inoutdir));
 
 % save variables to an input .mat file
-save(tmpfilename(1:end-1),'adaptivetime','t','nstep','outputinterval','nx','nz','d','cm', ...
+save(tmpfilename(1:end-1),'adaptivetime', 'nstep','outputinterval','nx','nz','d','cm', ...
   'lamdam','phi','rhom','kx','kz','g','T','P','Tbb','Tbl','Tbr','Tbt','Ptop','Pbt', ...
   'Pbb','Pbl','Pbr','alpham','rhobound','Pbound','Ttopconduction','cracked','Thot', ...
   'kon','koff','Z','steady','maxpicard','picardthresh','tdamp','stepfraction', ...
-  'Apress','Atemp','KIc','Pw','Tve','rhoR','-v7.3');
+  'Apress','Atemp','KIc','Pw','Tve','rhoR', 'stopyear', 'maxdT', '-v7.3');

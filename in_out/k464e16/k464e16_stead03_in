@@ -4,20 +4,22 @@
 steady          1 % set to unity for a steady state run. this turns cracking off
 
 % restart info
-restart         1
+restart         0
 restartfile     '~/research/crackingfronts/in_out/k464e16/k464e16_stead02_out.mat'
 
 % timing
 adaptivetime    1 % set to unity for adaptive time stepping
 nstep           10000000 % number of steps to complete if timing is adaptive
 outputinterval	100 % interval between steps to output. must be a devisor of nstep
+stopyear	300000
 stepfraction	0.046
 maxpicard	1
+maxdT		1
 
 % geometry
-nx		200 % number of grid cells in x-direction (columns)
-nz		50 % number of grid cells in z-direction (rows)
-d		20 % grid cell size (uniform grid, meters)
+nx		400 % number of grid cells in x-direction (columns)
+nz		100 % number of grid cells in z-direction (rows)
+d		10 % grid cell size (uniform grid, meters)
 
 % cracking front info
 frontdepth	1000 % depth to cracking front (m)

@@ -42,46 +42,9 @@ cfbl = interptim(PP,TT,CP,P1(:,1)  ./100000,Tbl(:,1));
 % compute darcy velocities (t=1)
 [qx1,qz1] = darcy(nx,nz,P1,rhof1,rhobb,kx,kz,mu1,g,d,Pbt,Pbb,Pbr,Pbl,T1);
 
-% initialize tout (used for debugging)
-%tout = zeros(1,nout);
-
 % get output filename base
 underloc = strfind(inputfile, '_');
 outfilenamebase = inputfile(1:underloc(end)-1);
-
-% delete previous output file if it exists
-%underloc = strfind(inputfile, '_');
-%outfilename = [inputfile(1:underloc(end)-1), '_out.mat'];
-%if exist(outfilename, 'file') == 2
-%  reply = input('Output file exists. Press ''y'' to overwrite. ','s');
-%  if strcmp(reply, 'y')
-%    system(sprintf('rm %s', outfilename));
-%  else
-%    return
-%  end
-%end
-
-% open output file object
-%outfileobj = matfile(outfilename);
-
-% initialize output file variables in output file
-%outfileobj.rhofout = zeros(nz,nx,nout);
-%outfileobj.cfout = zeros(nz,nx,nout);
-%outfileobj.Tout = zeros(nz,nx,nout);
-%outfileobj.Pout = zeros(nz,nx,nout);
-%outfileobj.crackedout = logical(zeros(nz,nx,nout));
-%outfileobj.qxout = zeros(nz,nx+1,nout);
-%outfileobj.qzout = zeros(nz+1,nx,nout);
-%outfileobj.tout = tout;
-
-% store t=1 output
-%outfileobj.rhofout(:,:,1) = rhof1;
-%outfileobj.cfout(:,:,1) = cf1;
-%outfileobj.Tout(:,:,1) = T1;
-%outfileobj.Pout(:,:,1) = P1;
-%outfileobj.qxout(:,:,1) = qx1;
-%outfileobj.qzout(:,:,1) = qz1;
-%outfileobj.crackedout(:,:,1) = cracked;
 
 % create tentative values at t=2
 rhof2 = rhof1;
@@ -96,17 +59,23 @@ T2 = T1;
 % store t=1 output
 t_years = 0;
 outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
-tout = 0;
-save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 'tout');
+t = 0;
+save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
 nout = 1;
 
-% initialize Tmax
-Tmax = 0;
+% initialize Tmax and dTmax
+Tmax = max(max(T1));
+dTmax = 0;
 
 % start timer
 tic;
+etime = toc;
+
+% initialize other flags
+dtadjust = 0;
 
 % time loop
+j = 0;
 for i = 1:nstep-1
 
   % if this is not a steady state run, crack
@@ -120,32 +89,58 @@ for i = 1:nstep-1
   end
 
   % set dt using adaptive or predefined time stepping
-  if adaptivetime==1
+  %if adaptivetime==1
     % adaptive time stepping based on CFL condition
-    maxV = max(max(max(qx2)),max(max(qz2)));
-    if i==1
-      dt = 24*3600;
-    elseif i<10
-      dt = min([0.001*d/maxV 0.001*d^2/1e-6]);
-    else
-      dt = min([stepfraction*d/maxV stepfraction*d^2/1e-6]);
-    end
-    t(i+1)=t(i)+dt;
-  else
+  %  maxV = max(max(max(qx2)),max(max(qz2)));
+  %  if i==1
+  %    dt = 24*3600;
+  %  elseif i<10
+  %    dt = min([0.001*d/maxV 0.001*d^2/1e-6]);
+  %  else
+  %    dt = min([stepfraction*d/maxV stepfraction*d^2/1e-6]);
+  %  end
+  %  t(i+1)=t(i)+dt;
+  %else
     % use t vector for dt
-    dt = t(i+1)-t(i);
-    error('don''t do this.');
+  %  dt = t(i+1)-t(i);
+  %  error('don''t do this.');
+  %end
+
+  % adaptive dt based on dT
+  j = j + 1;
+  if i == 1
+    dt = 3600*100;
+    fprintf('Starting dt: %0.6f h\n', dt/60/60);
   end
 
+  if dtadjust == 1
+    dt = dtlast;
+    dtadjust = 0;
+    fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+  end
+
+  if Tmax > Thot + 1 || dTmax > maxdT
+    dt = dt*0.8;
+    fprintf('Reducing dt to: %0.6f h\n', dt/60/60);
+    fprintf('Tmax: %0.2f\n', Tmax);
+  elseif j == 100
+    dt = dt*1.1;
+    j = 0;
+    fprintf('Increasing dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+  end
+  t2 = t+dt;
+
   % if crossing over outputinterval, adjust dt
-  if t(i+1) > outputinterval*nout
-    t(i+1) = outputinterval*nout;
-    dt = t(i+1)-t(i);
+  if t2 > outputinterval*nout
+    dtlast = dt;
+    dtadjust = 1;
+    t2 = outputinterval*nout;
+    dt = t2-t;
+    fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
   end
 
   % picard iterations
-  T2last = T1;
-  for j = 1:maxpicard
+  %for j = 1:maxpicard
     % compute beta for temperature equation
     beta2 = reshape(rhom.*cm.*(1-phi) + rhof2.*cf2.*phi,nx*nz,1);
         
@@ -170,6 +165,16 @@ for i = 1:nstep-1
     %T2int(T2int<0) = 0; % kluge to prevent negative temperatures
     T2(T2<0) = 0; % kluge to prevent negative temperatures
     %T2(T2>Thot) = Thot; % kluge to prevent overshoots
+
+    % if max of T2 is greater than Thot, start step over
+    Tmax = max(max(T2));
+    dTmax = max(max(T2-T1));
+    if Tmax > Thot + 1 || dTmax > maxdT
+      %disp(Tmax);
+      %keyboard;
+      i = i - 1;
+      continue;
+    end
 
     % damping
     %tdamp = min([j*0.04 0.4]);
@@ -218,70 +223,53 @@ for i = 1:nstep-1
     %  break;
     %end
 
-    % redefine T2last as T2
-    T2last = T2;
-
     % break after max picard iterations
-    if j==maxpicard
-      break;
-    end
-  end
+    %if j==maxpicard
+    %  break;
+    %end
+  %end
 
   % shift variables
   P1 = P2;
   T1 = T2;   
-
-  % track Tmax
-  Tmax = max([Tmax max(max(T1))]);
+  t = t2;
 
   % write outputs to file
-  if t(i+1) == outputinterval*nout
+  if t2 == outputinterval*nout
     t_years = outputinterval*nout/60/60/24/365;
     outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
-    tout = t(i+1);
-    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 'tout');
+    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
     nout = nout + 1;
-    if Tmax > Thot + 0.01
-      error('Tmax is greater than Thot.');
-    end
+    %if Tmax > Thot + 0.01
+      %error('Tmax is greater than Thot.');
+    %  fprintf('\nAdjusting T. Tmax: %.2f\n', Tmax);
+    %  T1(T1>Thot) = Thot;
+    %  T2(T2>Thot) = Thot;
+    %end
 
-  % output information
-  fprintf('\nStep: %i\n', i);
-  fprintf('Year: %i\n', t_years);
-  fprintf('Average steps/year: %.0f\n', i/t_years);
-
+    % output information
+    laptime = toc-etime;
+    slashloc = strfind(outfilename, '/');
+    fprintf('\nFile %s saved\n', outfilename(slashloc(end)+1:end));
+    fprintf('Year: %i\n', t_years);
+    fprintf('Step: %i\n', i);
+    fprintf('Average steps/year: %.0f\n', i/t_years);
+    fprintf('Wall time per %i years: %0.f s\n\n', outputinterval/60/60/24/365, laptime);
+    etime = toc;
   end
 
-  % write outputs to outfile object
-  %if mod(i,nstep/nout) == 0;
-  %  tout(i/(nstep/nout)+1) = t(i+1);
-  %  outfileobj.rhofout(:,:,i/(nstep/nout)+1) = rhof2;
-  %  outfileobj.cfout(:,:,i/(nstep/nout)+1) = cf2;
-  %  outfileobj.Tout(:,:,i/(nstep/nout)+1) = T2;
-  %  outfileobj.Pout(:,:,i/(nstep/nout)+1) = P2;
-  %  outfileobj.qxout(:,:,i/(nstep/nout)+1) = qx2;
-  %  outfileobj.qzout(:,:,i/(nstep/nout)+1) = qz2;
-  %  outfileobj.crackedout(:,:,i/(nstep/nout)+1) = cracked;
-  %  outfileobj.tout(1,i/(nstep/nout)+1) = t(i+1);
-  %  if Tmax > Thot + 0.01
-  %    error('Tmax is greater than Thot.');
-  %  end
-  %end
-    
-  % update progress bar
-  %progressbar(i,nstep-1,mfilename, 'working ...');
+  % stop at stopyear
+  if t_years == stopyear
+    break;
+  end
 end
 
 % print timing info
 etime = toc;
-fprintf('\n%s writen.\n\n', outfilename);
-fprintf('Total wall time\t\t\t%.1f seconds\n',etime);
+fprintf('\nSimulation complete\n');
+fprintf('Total wall time\t\t\t%.1f s\n',etime);
+fprintf('Total model time\t\t%.1f years\n', tout/60/60/24/365);
 fprintf('Number of model steps\t\t%i steps\n',i+1);
-fprintf('Wall time per step\t\t%.2f seconds\n',etime/nstep);
-fprintf('Total model time\t\t%.1f years\n', tout(end)/60/60/24/365);
-daysperstep = mean(diff(tout(end-round(length(tout)/4):end)))/60/60/24;
-if daysperstep>365
-  fprintf('Average model time per step\t%.2f years\n',daysperstep/365);
-else
-  fprintf('Average model time per step\t%.1f days\n',daysperstep);
-end
+fprintf('Average wall time per step\t%.2f s\n',etime/(i+1));
+fprintf('Average wall time per %i years\t%0.2f s\n', outputinterval/60/60/24/365, ...
+  etime/tout*outputinterval);
