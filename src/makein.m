@@ -44,7 +44,9 @@ cracked(Z>frontdepth) = 0;
 
 % initial temperature conditions
 rng('default');
-T = Z*0+Tcold+rand(nz,nx)*Thot/2;
+%T = Z*0+Tcold+rand(nz,nx)*Thot/2;
+T = repmat(-sin(linspace(0,1,nx)*2*pi*8.5)*(min(min(Z/(d*nz)*Thot))), nz,1) + ...
+  Z/(d*nz)*Thot + rand(nz,nx);
 T(~cracked) = Thot;
 
 % restart temperature and uncracked fields if required
@@ -131,4 +133,4 @@ save(tmpfilename(1:end-1),'adaptivetime', 'nstep','outputinterval','nx','nz','d'
   'lamdam','phi','rhom','kx','kz','g','T','P','Tbb','Tbl','Tbr','Tbt','Ptop','Pbt', ...
   'Pbb','Pbl','Pbr','alpham','rhobound','Pbound','Ttopconduction','cracked','Thot', ...
   'kon','koff','Z','steady','maxpicard','picardthresh','tdamp','stepfraction', ...
-  'Apress','Atemp','KIc','Pw','Tve','rhoR', 'stopyear', '-v7.3');
+  'Apress','Atemp','KIc','Pw','Tve','rhoR', 'stopyear', 'maxdT', '-v7.3');

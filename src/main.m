@@ -63,15 +63,15 @@ t = 0;
 save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
 nout = 1;
 
-% initialize Tmax
+% initialize Tmax and dTmax
 Tmax = max(max(T1));
-deltaTmax = 0;
+dTmax = 0;
 
 % start timer
 tic;
 etime = toc;
 
-maxdT = 0.1;
+% initialize other flags
 dtadjust = 0;
 
 % time loop
@@ -109,7 +109,7 @@ for i = 1:nstep-1
   % adaptive dt based on dT
   j = j + 1;
   if i == 1
-    dt = 3600;
+    dt = 3600*100;
     fprintf('Starting dt: %0.6f h\n', dt/60/60);
   end
 
@@ -119,7 +119,7 @@ for i = 1:nstep-1
     fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
   end
 
-  if Tmax > Thot + 1 || deltaTmax > maxdT
+  if Tmax > Thot + 1 || dTmax > maxdT
     dt = dt*0.8;
     fprintf('Reducing dt to: %0.6f h\n', dt/60/60);
     fprintf('Tmax: %0.2f\n', Tmax);
@@ -168,8 +168,8 @@ for i = 1:nstep-1
 
     % if max of T2 is greater than Thot, start step over
     Tmax = max(max(T2));
-    deltaTmax = max(max(T2-T1));
-    if Tmax > Thot + 1 || deltaTmax > maxdT
+    dTmax = max(max(T2-T1));
+    if Tmax > Thot + 1 || dTmax > maxdT
       %disp(Tmax);
       %keyboard;
       i = i - 1;
