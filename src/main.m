@@ -71,11 +71,12 @@ dTmax = 0;
 tic;
 etime = toc;
 
-% initialize other flags
+% initialize other flags and counters
 dtadjust = 0;
+j = 0;
+stepsdone = 0;
 
 % time loop
-j = 0;
 for i = 1:nstep-1
 
   % if this is not a steady state run, crack
@@ -170,9 +171,6 @@ for i = 1:nstep-1
     Tmax = max(max(T2));
     dTmax = max(max(T2-T1));
     if Tmax > Thot + 1 || dTmax > maxdT
-      %disp(Tmax);
-      %keyboard;
-      i = i - 1;
       continue;
     end
 
@@ -233,6 +231,7 @@ for i = 1:nstep-1
   P1 = P2;
   T1 = T2;   
   t = t2;
+  stepsdone = stepsdone + 1;
 
   % write outputs to file
   if t2 == outputinterval*nout
@@ -252,8 +251,8 @@ for i = 1:nstep-1
     slashloc = strfind(outfilename, '/');
     fprintf('\nFile %s saved\n', outfilename(slashloc(end)+1:end));
     fprintf('Year: %i\n', t_years);
-    fprintf('Step: %i\n', i);
-    fprintf('Average steps/year: %.0f\n', i/t_years);
+    fprintf('Step: %i\n', stepsdone);
+    fprintf('Average steps/year: %.0f\n', stepsdone/t_years);
     fprintf('Wall time per %i years: %0.f s\n\n', outputinterval/60/60/24/365, laptime);
     etime = toc;
   end
@@ -269,7 +268,7 @@ etime = toc;
 fprintf('\nSimulation complete\n');
 fprintf('Total wall time\t\t\t%.1f s\n',etime);
 fprintf('Total model time\t\t%.1f years\n', tout/60/60/24/365);
-fprintf('Number of model steps\t\t%i steps\n',i+1);
-fprintf('Average wall time per step\t%.2f s\n',etime/(i+1));
+fprintf('Number of model steps\t\t%i steps\n',stepsdone);
+fprintf('Average wall time per step\t%.2f s\n',etime/(stepsdone));
 fprintf('Average wall time per %i years\t%0.2f s\n', outputinterval/60/60/24/365, ...
   etime/tout*outputinterval);
