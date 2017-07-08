@@ -10,7 +10,7 @@ restartfile     '~/research/crackingfronts/in_out/k100e15/k100e15_stead02_out.ma
 % timing
 adaptivetime    1 % set to unity for adaptive time stepping
 nstep           10000000 % number of steps to complete if timing is adaptive
-outputinterval	100 % interval between steps to output. must be a devisor of nstep
+outputinterval	10 % interval between steps to output. must be a devisor of nstep
 stopyear	300000
 stepfraction	0.01
 maxpicard	1
