@@ -51,13 +51,14 @@ T(~cracked) = Thot;
 
 % restart temperature and uncracked fields if required
 if restart==1
-  R = load(restartfile, 'Tout', 'crackedout', 'Pout');
-  [m, n] = size(R.Tout(:,:,end));
+  %R = load(restartfile, 'Tout', 'crackedout', 'Pout');
+  R = load(restartfile, 'T2', 'cracked', 'P2');
+  [m, n] = size(R.T2);
   if n~=nx
     error('Restarted domains must have the same number of columns as the original.');
   end
-  cracked(1:m,:) = R.crackedout(:,:,end);
-  T(1:m,:) = R.Tout(:,:,end);
+  cracked(1:m,:) = R.cracked;
+  T(1:m,:) = R.T2;
   % map Tres onto current geometry if necessary
   %if sum(size(T)==size(Tres))~=2
   %  if steady==0
@@ -110,7 +111,7 @@ end
 [P,Pbound,dPdzbound,rhobound] = calcinitp(nx,nz,T,Tbt,Tbb,Ptop,TT, ...
     PP,RHO,g,d);
 if restart==1
-  P(1:m,:) = R.Pout(:,:,end);
+  P(1:m,:) = R.P2;
   %if sum(size(P)==size(Pres))~=2
    % error('Geometry resizing not yet allowed');
   %else % same size as restart
