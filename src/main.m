@@ -110,7 +110,7 @@ for i = 1:nstep-1
   % adaptive dt based on dT
   j = j + 1;
   if i == 1
-    dt = 3600*100;
+    dt = 3600*1000;
     fprintf('Starting dt: %0.6f h\n', dt/60/60);
   end
 
@@ -124,7 +124,7 @@ for i = 1:nstep-1
     dt = dt*0.8;
     fprintf('Reducing dt to: %0.6f h\n', dt/60/60);
     fprintf('Tmax: %0.2f\n', Tmax);
-  elseif j >= 100
+  elseif j >= 10
     dt = dt*1.1;
     j = 0;
     fprintf('Increasing dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
