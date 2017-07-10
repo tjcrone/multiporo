@@ -1,6 +1,13 @@
 function [Tout, rhofout, cfout, qzout, crackedout, tout] = combineout(basename)
-
-%basename = '/Users/tjc/research/crackingfronts/in_out/k215e15/k215e15_stead03*';
+% This function combines the new output files into merged variables with the
+% same names as the old output file format.
+%
+% Examples:
+%
+% >> [Tout, rhofout, cfout, qzout, crackedout, tout] = combineout('/home/tjc/research/crackingfronts/in_out/k215e16/k215e16_stead03_out_*');
+% >> [Tout, rhofout, cfout, qzout, crackedout, tout] = combineout('/home/tjc/research/crackingfronts/in_out/k215e16/k215e16_crack03_out_*');
+%
+% Timothy Crone (tjcrone@gmail.com)
 
 files = dir(basename);
 i = 1;
