@@ -22,7 +22,7 @@ for file = files'
     cfout(:,:,i) = cf2;
     qzout(:,:,i) = qz2;
     crackedout(:,:,i) = cracked;
-    tout(:,:,i) = t;
+    tout(i) = t;
   end
   i = i+1;
 end
