@@ -28,13 +28,13 @@ Qcc = -lamdam.*(T(2:end,:)-T(1:end-1,:));
 
 % advective heat transport
 Qan = T(2:end,:) .* rhof(2:end,:) .* cf(2:end,:) .* qz(2:end-1,:) .* ...
-  double(qz(2:end-1,:)<0);
+  double(qz(2:end-1,:)<0) * d;
 Qas = T(1:end-1,:) .* rhof(1:end-1,:) .* cf(1:end-1,:) .* qz(2:end-1,:) .* ...
-  double(qz(2:end-1,:)>=0);
-Qa = (Qan+Qas)*d;
+  double(qz(2:end-1,:)>=0) * d;
+Qa = Qan + Qas;
 
 % total Q
-Q = sum(Qcc+Qa,2);
+Q = sum(Qcc + Qa, 2);
 
 % Nusselt number (for each band of horizontal boxes)
 Nu = Q./Qc;
