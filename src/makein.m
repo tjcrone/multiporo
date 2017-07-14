@@ -106,9 +106,9 @@ if isempty(TT)
    load('../hydrotables/hydrotab8.mat');
 end
 
-% calculate starting pressure field uxing calcinitp
+% calculate starting pressure field uxing initp.m
 %Ptop = 20e6; % average seafloor pressure at top of domain
-[P,Pbound,dPdzbound,rhobound] = calcinitp(nx,nz,T,Tbt,Tbb,Ptop,TT, ...
+[P,Pbound,dPdzbound,rhobound] = initp(nx,nz,T,Tbt,Tbb,Ptop,TT, ...
     PP,RHO,g,d);
 if restart==1
   P(1:m,:) = R.P2;
