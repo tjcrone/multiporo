@@ -1,5 +1,5 @@
 *_out.mat
-*_out.log
-*_in.*
-*_out_*
-in_out/playfield.m
+*.log
+*_out_0*
+*_out_1*
+*_out_2*
