@@ -42,6 +42,14 @@ g = 9.8; % gravitational constant
 cracked = logical(Z*0+1);
 cracked(Z>frontdepth) = 0;
 
+% some poroelastic stuff (not used for now)
+%Ks = 80e9; % rock bulk modulus (basalt/diabase)
+%Vpu = ones(nz,nx)*7100; % undrained p-wave velocity
+%nuu = ones(nz,nx)*0.2498511904; % undrained Poisson's ratio
+%Tvp = 600; %temperature condition for p-wave value
+%Pvp = 30e6; %pressure condition (Pa) for p-wave value
+%[G,K,Ku,lamdal,nu,biot,gamma,Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,Pvp);
+
 % initial temperature conditions
 rng('default');
 %T = Z*0+Tcold+rand(nz,nx)*Thot/2;
