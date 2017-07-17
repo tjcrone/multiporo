@@ -188,12 +188,6 @@ for i = 1:nstep-1
     outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
     save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
     nout = nout + 1;
-    %if Tmax > Thot + 0.01
-      %error('Tmax is greater than Thot.');
-    %  fprintf('\nAdjusting T. Tmax: %.2f\n', Tmax);
-    %  T1(T1>Thot) = Thot;
-    %  T2(T2>Thot) = Thot;
-    %end
 
     % output information
     laptime = toc-etime;
