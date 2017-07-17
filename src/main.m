@@ -89,24 +89,6 @@ for i = 1:nstep-1
     kz(cracked) = kon;
   end
 
-  % set dt using adaptive or predefined time stepping
-  %if adaptivetime==1
-    % adaptive time stepping based on CFL condition
-  %  maxV = max(max(max(qx2)),max(max(qz2)));
-  %  if i==1
-  %    dt = 24*3600;
-  %  elseif i<10
-  %    dt = min([0.001*d/maxV 0.001*d^2/1e-6]);
-  %  else
-  %    dt = min([stepfraction*d/maxV stepfraction*d^2/1e-6]);
-  %  end
-  %  t(i+1)=t(i)+dt;
-  %else
-    % use t vector for dt
-  %  dt = t(i+1)-t(i);
-  %  error('don''t do this.');
-  %end
-
   % adaptive dt based on dT
   j = j + 1;
   if i == 1
