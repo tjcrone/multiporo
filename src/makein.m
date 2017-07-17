@@ -9,21 +9,7 @@ function [tmpfilename] = makein(inputfile)
 readinput(inputfile);
 
 % time stepping information
-%if adaptivetime==1
-%    t = zeros(1,nstep); % initialize t vector for adaptive time stepping
-%else
-%    stepsize = 1e5; % step size in seconds
-%    runtime = 3e7; % total run time in seconds (3e9 is about 100 years)
-%    t = 0:stepsize:runtime-stepsize; % create time vector built from stepsize and runtime
-%    nstep = length(t); % number of steps required in model run
-%end
-%nout = nstep/outputinterval; % number of steps to output (must be divisor of nstep)
 outputinterval = outputinterval*365*24*60*60; % convert output interval in years to seconds
-
-% check nout
-%if mod(nstep,nout) ~= 0 || mod(nout,1) ~= 0
-%   error('Output step number is not an integer. Check nstep and outputinterval.');
-%end
 
 % domain geometry
 x = linspace(d/2,(nx-1)*d,nx);
@@ -59,7 +45,6 @@ T(~cracked) = Thot;
 
 % restart temperature and uncracked fields if required
 if restart==1
-  %R = load(restartfile, 'Tout', 'crackedout', 'Pout');
   R = load(restartfile, 'T2', 'cracked', 'P2');
   [m, n] = size(R.T2);
   if n~=nx
@@ -96,10 +81,6 @@ kz = ones(nz,nx)*kon;  % permeability in z-direction
 kx(~cracked) = koff;
 kz(~cracked) = koff;
 
-% define permeability function
-%kfunc = 0; % set to unity if using a permeability function
-%kcall = '[kx,kz] = thermalcracking(nx,nz,Z,kon,koff,g,T1);';
-
 % temperature boundary conditions (0=Neumann 1=Dirichlet)
 % first row/column is value, second is type
 Tbt = [ones(1,nx)*Tcold; ones(1,nx)*1]; % Dirichlet cold
@@ -115,7 +96,6 @@ if isempty(TT)
 end
 
 % calculate starting pressure field uxing initp.m
-%Ptop = 20e6; % average seafloor pressure at top of domain
 [P,Pbound,dPdzbound,rhobound] = initp(nx,nz,T,Tbt,Tbb,Ptop,TT, ...
     PP,RHO,g,d);
 if restart==1
