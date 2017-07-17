@@ -210,8 +210,8 @@ end
 etime = toc;
 fprintf('\nSimulation complete\n');
 fprintf('Total wall time\t\t\t%.1f s\n',etime);
-fprintf('Total model time\t\t%.1f years\n', tout/60/60/24/365);
+fprintf('Total model time\t\t%.1f years\n', t_years);
 fprintf('Number of model steps\t\t%i steps\n',stepsdone);
 fprintf('Average wall time per step\t%.2f s\n',etime/(stepsdone));
 fprintf('Average wall time per %i years\t%0.2f s\n', outputinterval/60/60/24/365, ...
-  etime/tout*outputinterval);
+  etime/t*outputinterval);
