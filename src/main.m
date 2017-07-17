@@ -122,92 +122,59 @@ for i = 1:nstep-1
     fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
   end
 
-  % picard iterations
-  %for j = 1:maxpicard
-    % compute beta for temperature equation
-    beta2 = reshape(rhom.*cm.*(1-phi) + rhof2.*cf2.*phi,nx*nz,1);
+  % compute beta for temperature equation
+  beta2 = reshape(rhom.*cm.*(1-phi) + rhof2.*cf2.*phi,nx*nz,1);
+
+  % create del-squared stiffness matrix for diffusion term in heat eq.
+  [AimpT,CimpT] = tdiffcoeff(nx,nz,d,lamdam,Tbr,Tbl,Tbb,Tbt,Ttopconduction);
+
+  % compute T2 using implicit technique
+  [BimpT,DimpT] = tadvectcoeff(nx,nz,d,qx2,qz2,rhof2,cf2,Tbb,Tbt,Tbr,Tbl, ...
+    rhobt,rhobb,rhobr,rhobl,cfbt,cfbb,cfbr,cfbl);
         
-    % create del-squared stiffness matrix for diffusion term in heat eq.
-    [AimpT,CimpT] = tdiffcoeff(nx,nz,d,lamdam,Tbr,Tbl,Tbb,Tbt,Ttopconduction);
-
-    % compute T2 using implicit technique
-    [BimpT,DimpT] = tadvectcoeff(nx,nz,d,qx2,qz2,rhof2,cf2,Tbb,Tbt,Tbr,Tbl, ...
-      rhobt,rhobb,rhobr,rhobl,cfbt,cfbb,cfbr,cfbl);
+  % single step implicit left hand side stiffness:
+  Tstiff = spdiags(beta2,0,nx*nz,nx*nz) - dt*(AimpT + BimpT);
         
-    % single step implicit left hand side stiffness:
-    Tstiff = spdiags(beta2,0,nx*nz,nx*nz) - dt*(AimpT + BimpT);
+  % single step implicit right hand side
+  RHS = reshape(T1,nx*nz,1).*beta2 + dt*(CimpT + DimpT); %see p. 464
         
-    % single step implicit right hand side
-    RHS = reshape(T1,nx*nz,1).*beta2 + dt*(CimpT + DimpT); %see p. 464
-        
-    % and solve:
-    %T2int = Tstiff\RHS;
-    T2 = Tstiff\RHS;
-    %T2int = reshape(T2int,nz,nx);
-    T2 = reshape(T2,nz,nx);
-    %T2int(T2int<0) = 0; % kluge to prevent negative temperatures
-    T2(T2<0) = 0; % kluge to prevent negative temperatures
-    %T2(T2>Thot) = Thot; % kluge to prevent overshoots
+  % and solve:
+  T2 = Tstiff\RHS;
+  T2 = reshape(T2,nz,nx);
+  T2(T2<0) = 0; % kluge to prevent negative temperatures
 
-    % if max of T2 is greater than Thot, start step over
-    Tmax = max(max(T2));
-    dTmax = max(max(T2-T1));
-    if Tmax > Thot + 1 || dTmax > maxdT
-      continue;
-    end
+  % if max of T2 is greater than Thot, start step over
+  Tmax = max(max(T2));
+  dTmax = max(max(T2-T1));
+  if Tmax > Thot + 1 || dTmax > maxdT
+    continue;
+  end
 
-    % damping
-    %tdamp = min([j*0.04 0.4]);
-    %tdamp = j*0.01;
-    %tdamp = 0.3;
-    %T2 = T2last+tdamp*(T2-T2last);
-    %T2 = T1+tdamp*(T2-T1);
+  % update T-P dependent fluid properties and darcy velocities
+  mu2 = dynvisc(T2);
+  rhof2 = interptim(PP,TT,RHO,P2./100000,T2); %fluid density
+  cf2 = interptim(PP,TT,CP,P2./100000,T2); %fluid heat capacity
+  [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2);
 
-    % update T-P dependent fluid properties and darcy velocities
-    mu2 = dynvisc(T2);
-    rhof2 = interptim(PP,TT,RHO,P2./100000,T2); %fluid density
-    cf2 = interptim(PP,TT,CP,P2./100000,T2); %fluid heat capacity
-    [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2);
+  % compute P2 using implicit technique
+  [AimpP,BimpP,CimpP] = pstiff(nx,nz,d,Se2,rhof2,rhobt,rhobb,rhobr,rhobl, ...
+    qx2,qz2,kx,kz,mu2,g,T2,Pbt,Pbb,Pbr,Pbl);
 
-    % calculate Se2 here using Ku2
-        
-    % compute P2 using implicit technique
-    [AimpP,BimpP,CimpP] = pstiff(nx,nz,d,Se2,rhof2,rhobt,rhobb,rhobr,rhobl, ...
-      qx2,qz2,kx,kz,mu2,g,T2,Pbt,Pbb,Pbr,Pbl);
+  % single step implicit left hand side stiffness:
+  Pstiffness = AimpP;
 
-    % single step implicit left hand side stiffness:
-    Pstiffness = AimpP;
+  % single step implicit right hand side
+  PRHS = -BimpP-CimpP;
 
-    % single step implicit right hand side
-    PRHS = -BimpP-CimpP;
+  % and solve:
+  P2 = Pstiffness\PRHS;
+  P2 = reshape(P2,nz,nx);
 
-    % and solve:
-    P2 = Pstiffness\PRHS;
-    P2 = reshape(P2,nz,nx);
-
-    % update T-P dependent fluid properties and darcy velocities
-    mu2 = dynvisc(T2);
-    rhof2 = interptim(PP,TT,RHO,P2./100000,T2); %fluid density
-    cf2 = interptim(PP,TT,CP,P2./100000,T2); %fluid heat capacity
-    [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2);
-
-    % convergence check
-    %picardthresh = 0.01;
-    %maxdel = find(abs(T2-T1)==max(max(abs(T2-T1))),1,'first');
-    %maxdel = find(abs(T2-T2last)==max(max(abs(T2-T2last))),1,'first');
-    %if abs(T2(maxdel)-T2last(maxdel)) < 0.001 && j > 2 % picardthresh && j>10
-    %if abs(T2(maxdel)-T2last(maxdel))/T2last(maxdel) < picardthresh && j>10
-    %if max(max(((abs(T2-T2last))./(abs(T2-T1))))) < picardthresh
-    %  disp(j)
-    %  outfileobj.npicard(1,i) = j;
-    %  break;
-    %end
-
-    % break after max picard iterations
-    %if j==maxpicard
-    %  break;
-    %end
-  %end
+  % update T-P dependent fluid properties and darcy velocities
+  mu2 = dynvisc(T2);
+  rhof2 = interptim(PP,TT,RHO,P2./100000,T2); %fluid density
+  cf2 = interptim(PP,TT,CP,P2./100000,T2); %fluid heat capacity
+  [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2);
 
   % shift variables
   P1 = P2;
