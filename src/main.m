@@ -108,6 +108,9 @@ for i = 1:nstep-1
     fprintf('Tmax: %0.2f\n', Tmax);
   elseif j >= 10
     dt = dt*1.1;
+    if dt > outputinterval
+      dt = outputinterval
+    end
     j = 0;
     fprintf('Increasing dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
   end
