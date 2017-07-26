@@ -1,7 +1,4 @@
 *.DS_Store
-*_out.mat
-*.log
-*_out_0*
-*_out_1*
-*_out_2*
-*_redux.mat
+post/*
+input/*
+output/*
