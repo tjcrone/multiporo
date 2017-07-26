@@ -1,4 +1,4 @@
-function [initP,Pbound,dPdzbound,rhobound] = initp(nx,nz,T,Tbt,Tbb,Ptop,TT,PP,RHO,g,d)
+function [initP,Pbound,dPdzbound,rhobound] = initp(nx,nz,T,Tbt,Tbb,Ptop,g,d)
 %this function calculates the initial pressure distribution within
 %the model domain assuming a hydrostatic pressure gradient, and flow
 %only in the z-direction.  at the moment, it only works for initial
@@ -8,6 +8,9 @@ function [initP,Pbound,dPdzbound,rhobound] = initp(nx,nz,T,Tbt,Tbb,Ptop,TT,PP,RH
 %some derivations)  this function also computes the pressure gradient
 %and the density of the inflowing fluid on the bottom boundary to be
 %used if required
+
+% globalize thermodynamic tables
+global TT PP RHO CP
 
 % initialize matrices
 initP = [T*0+Ptop;zeros(1,nx)+Ptop];
