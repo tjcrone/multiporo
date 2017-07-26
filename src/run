@@ -12,7 +12,11 @@ numFiles=1
 while [[ $# > 0 ]]; do
   key="$1"
   case $key in
-    "-p") # set parallel flag
+    -v|--version) # show version and exit
+    echo "multiporo v0.1.0"
+    exit
+    ;;
+    -p|--parallel) # set parallel flag
     parallel=1
     ;;
     *) # anything else is considered an input file
