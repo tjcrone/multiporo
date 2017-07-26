@@ -28,7 +28,22 @@ while [[ $# > 0 ]]; do
 done
 numFiles=$((numFiles-1))
 
-# loop though input files
+# check number of files
+if [[ $numFiles -lt 1 ]]; then
+  echo "Error: at least one valid input file must be passed as an argument."
+  exit 1
+fi
+
+# check input files
+for i in $(seq 1 $numFiles); do
+  infile=${fileList[$i]}
+  if [[ ! -s $infile ]]; then
+    echo "Error: $infile is not a valid input file."
+    exit 1
+  fi
+done
+
+# run input files
 for i in $(seq 1 $numFiles); do
   infile=${fileList[$i]}
   #echo $infile
