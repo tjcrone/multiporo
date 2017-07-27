@@ -58,6 +58,11 @@ input.Pbb = [ones(1,input.nx).*0;ones(1,input.nx)*0]; % closed
 input.Pbr = [ones(input.nz,1).*0 ones(input.nz,1)*0]; % closed
 input.Pbl = [ones(input.nz,1).*0 ones(input.nz,1)*0]; % closed
 
+% timing/stepping information
+if ~isfield(input, 'nstep')
+  input.nstep = 0;
+end
+
 % starting pressure field
 %[P,Pbound,dPdzbound,rhobound] = initp(nx,nz,T,Tbt,Tbb,Ptop,TT, PP,RHO,g,d);
 

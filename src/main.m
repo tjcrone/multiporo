@@ -21,7 +21,6 @@ Pbb = input.Pbb;
 Pbr = input.Pbr;
 Pbl = input.Pbl;
 g = input.g;
-nstep = input.nstep;
 output_interval = input.output_interval;
 rhom = input.rhom;
 cm = input.cm;
@@ -96,12 +95,15 @@ tic;
 etime = toc;
 
 % initialize other flags and counters
-dtadjust = 0;
+i = 0;
 j = 0;
 stepsdone = 0;
+dtadjust = 0;
 
 % time loop
-for i = 1:nstep-1
+while 1
+  % increment counter
+  i = i+1;
 
   % crack domain if cracking front model
   if strcmp(input.model_type,'cracking_convection')
@@ -232,6 +234,11 @@ for i = 1:nstep-1
     %fprintf('Average steps/year: %.0f\n', stepsdone/t_years);
     %fprintf('Wall time per %i years: %0.f s\n\n', output_interval/60/60/24/365, laptime);
     etime = toc;
+  end
+
+  % stop at nstep if nstep is defined
+  if stepsdone == input.nstep
+    break;
   end
 
   % stop at stop_time
