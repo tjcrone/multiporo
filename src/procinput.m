@@ -76,8 +76,12 @@ input.Pbl = [ones(input.nz,1).*0 ones(input.nz,1)*0]; % closed
 %[G,K,Ku,lamdal,nu,biot,gamma,Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,Pvp);
 
 % restart stuff
-%if restart==1
-%  R = load(restartfile, 'T2', 'cracked', 'P2');
+if isfield(input, 'restart_file')
+  R = load(restartfile, 'T2', 'P2', 't');
+  input.T = T2;
+  input.P = P2;
+  input.t = t;
+end
 %  [m, n] = size(R.T2);
 %  if n~=nx
 %    error('Restarted domains must have the same number of columns as the original.');
@@ -121,14 +125,3 @@ input.Pbl = [ones(input.nz,1).*0 ones(input.nz,1)*0]; % closed
   %  P = Pres;
   %end 
 %end
-
-% save the output to a temporary file
-%inoutdir = '../in_out/';
-%[status, tmpfilename] = system(sprintf('mktemp %sinput.XXXXXX', inoutdir));
-
-% save variables to an input .mat file
-%save(tmpfilename(1:end-1), 'nstep','outputinterval','nx','nz','d','cm', ...
-%  'lamdam','phi','rhom','kx','kz','g','T','P','Tbb','Tbl','Tbr','Tbt','Ptop','Pbt', ...
-%  'Pbb','Pbl','Pbr','alpham','rhobound','Pbound','Ttopconduction','cracked','Thot', ...
-%  'kon','koff','Z','steady', 'Apress','Atemp','KIc','Pw','Tve','rhoR', 'stopyear', ...
-%  'maxdT', '-v7.3');
