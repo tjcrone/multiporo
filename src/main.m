@@ -72,19 +72,20 @@ mu2 = mu1;
 P2 = P1;
 T2 = T1;
 
-% store t=1 output
+% store t=1 output or skip this if restarting
 t = 0;
 if isfield(input, 't')
   t = input.t;
 end
 outfilename = [outfilenamebase, sprintf('_out_%010.0f.mat', t)];
-
-if strcmp(input.model_type,'cracking_convection')
-  save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
-elseif strcmp(input.model_type,'convection')
-  save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't');
+if ~isfield(input, 'restart_file')
+  if strcmp(input.model_type,'cracking_convection')
+    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
+  elseif strcmp(input.model_type,'convection')
+    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't');
+  end
 end
-nout = 1;
+nout = t/output_interval+1;
 
 % initialize Tmax and dTmax
 Tmax = max(max(T1));
@@ -215,7 +216,6 @@ while 1
 
   % write outputs to file
   if t == output_interval*nout
-    %t_years = output_interval*nout/60/60/24/365;
     outfilename = [outfilenamebase, sprintf('_out_%010.0f.mat', t)];
 
     if strcmp(input.model_type,'cracking_convection')
@@ -251,7 +251,7 @@ end
 etime = toc;
 fprintf('\nSimulation complete\n');
 fprintf('Total wall time\t\t\t%.1f s\n',etime);
-fprintf('Total model time\t\t%.1f years\n', t_years);
+%fprintf('Total model time\t\t%.1f years\n', t_years);
 fprintf('Number of model steps\t\t%i steps\n',stepsdone);
 fprintf('Average wall time per step\t%.2f s\n',etime/(stepsdone));
 fprintf('Average wall time per %i years\t%0.2f s\n', output_interval/60/60/24/365, ...
