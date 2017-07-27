@@ -1,17 +1,32 @@
 function [] = main(inputfile)
-% This is the main poroelastic convection model function. It creates and loads the
-% input variables specified by INPUTFILE, then commences a convection run
-% saving the outputs to a file with the same prefix as the input file.
-%
-% Timothy Crone (tjcrone@gmail.com)
+% This is the main multiporo Matlab function.
 
-% run makein
-tmpfilename = makein(inputfile);
+% process input file
+input = procinput(inputfile);
 
-% load the result of makein and delete the temporary mat file
-kx = 0;
-load(tmpfilename(1:end-1), '-mat');
-system(sprintf('rm %s', tmpfilename(1:end-1)));
+% break variables out of input (this should be temporary)
+nx = input.nx;
+nz = input.nz;
+d = input.d;
+T1 = input.T;
+Tbt = input.Tbt;
+Tbb = input.Tbb;
+Tbr = input.Tbr;
+Tbl = input.Tbl;
+kx = input.kx;
+kz = input.kz;
+Ptop = input.Ptop;
+Pbt = input.Pbt;
+Pbb = input.Pbb;
+Pbr = input.Pbr;
+Pbl = input.Pbl;
+g = input.g;
+nstep = input.nstep;
+output_interval = input.output_interval;
+rhom = input.rhom;
+cm = input.cm;
+phi = input.phi;
+lambdam = input.lambdam;
 
 % globalize thermodynamic tables
 global TT PP RHO CP
@@ -19,9 +34,14 @@ if isempty(TT)
     load('../hydrotables/hydrotab8.mat');
 end
 
-% add step signifier to some variables
-T1 = T;
-P1 = P;
+% calculate starting pressure field if not defined
+if ~exist('init.P')
+  [P1,Pbound,dPdzbound,rhobound] = initp(nx,nz,T1,Tbt,Tbb,Ptop,g,d);
+else
+  P1 = input.P;
+  Pbound = input.Pbound;
+  dPdzbound = input.dPdzbound;
+end
 
 % compute T-P dependent fluid properties (t=1)
 mu1 = dynvisc(T1); %fluid viscosity
@@ -60,7 +80,12 @@ T2 = T1;
 t_years = 0;
 outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
 t = 0;
-save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
+
+if strcmp(input.model_type,'cracking_convection')
+  save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
+elseif strcmp(input.model_type,'convection')
+  save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't');
+end
 nout = 1;
 
 % initialize Tmax and dTmax
@@ -79,8 +104,8 @@ stepsdone = 0;
 % time loop
 for i = 1:nstep-1
 
-  % if this is not a steady state run, crack
-  if steady==0
+  % crack domain if cracking front model
+  if strcmp(input.model_type,'cracking_convection')
     KI=Atemp*(Tve-T1)-Apress*(Pw+rhoR*g*Z);
     cracked = ((KI>=KIc)+cracked)>0;
     kx(:,:) = koff;
@@ -89,47 +114,49 @@ for i = 1:nstep-1
     kz(cracked) = kon;
   end
 
-  % adaptive dt based on dT
-  j = j + 1;
-  if i == 1
-    dt = 3600*1000;
-    fprintf('Starting dt: %0.6f h\n', dt/60/60);
-  end
-
-  if dtadjust == 1
-    dt = dtlast;
-    dtadjust = 0;
-    fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
-  end
-
-  if Tmax > Thot + 1 || dTmax > maxdT
-    dt = dt*0.8;
-    fprintf('Reducing dt to: %0.6f h\n', dt/60/60);
-    fprintf('Tmax: %0.2f\n', Tmax);
-  elseif j >= 10
-    dt = dt*1.1;
-    if dt > outputinterval
-      dt = outputinterval
+  % dt based on stepper_type
+  if strcmp(input.stepper_type,'dT')
+    j = j + 1;
+    if i == 1
+      dt = input.initial_dt;
+      fprintf('Starting dt: %0.6f h\n', dt/60/60);
     end
-    j = 0;
-    fprintf('Increasing dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
-  end
-  t2 = t+dt;
 
-  % if crossing over outputinterval, adjust dt
-  if t2 > outputinterval*nout
-    dtlast = dt;
-    dtadjust = 1;
-    t2 = outputinterval*nout;
-    dt = t2-t;
-    fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+    if dtadjust == 1
+      dt = dtlast;
+      dtadjust = 0;
+      fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+    end
+
+    if Tmax > input.Thot + 1 || dTmax > input.maxdT
+      dt = dt*0.8;
+      fprintf('Reducing dt to: %0.6f h\n', dt/60/60);
+      fprintf('Tmax: %0.2f\n', Tmax);
+    elseif j >= input.increase_interval
+      dt = dt*1.1;
+      if dt > output_interval
+        dt = output_interval
+      end
+      j = 0;
+      fprintf('Increasing dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+    end
+    t2 = t+dt;
+
+    % if crossing over output_interval, adjust dt
+    if t2 > output_interval*nout
+      dtlast = dt;
+      dtadjust = 1;
+      t2 = output_interval*nout;
+      dt = t2-t;
+      fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+    end
   end
 
   % compute beta for temperature equation
   beta2 = reshape(rhom.*cm.*(1-phi) + rhof2.*cf2.*phi,nx*nz,1);
 
   % create del-squared stiffness matrix for diffusion term in heat eq.
-  [AimpT,CimpT] = tdiffcoeff(nx,nz,d,lamdam,Tbr,Tbl,Tbb,Tbt,Ttopconduction);
+  [AimpT,CimpT] = tdiffcoeff(nx,nz,d,lambdam,Tbr,Tbl,Tbb,Tbt,input.Ttop_conduction);
 
   % compute T2 using implicit technique
   [BimpT,DimpT] = tadvectcoeff(nx,nz,d,qx2,qz2,rhof2,cf2,Tbb,Tbt,Tbr,Tbl, ...
@@ -149,7 +176,7 @@ for i = 1:nstep-1
   % if max of T2 is greater than Thot, start step over
   Tmax = max(max(T2));
   dTmax = max(max(T2-T1));
-  if Tmax > Thot + 1 || dTmax > maxdT
+  if Tmax > input.Thot + 1 || dTmax > input.maxdT
     continue;
   end
 
@@ -186,10 +213,15 @@ for i = 1:nstep-1
   stepsdone = stepsdone + 1;
 
   % write outputs to file
-  if t2 == outputinterval*nout
-    t_years = outputinterval*nout/60/60/24/365;
+  if t2 == output_interval*nout
+    t_years = output_interval*nout/60/60/24/365;
     outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
-    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
+
+    if strcmp(input.model_type,'cracking_convection')
+      save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
+    elseif strcmp(input.model_type,'convection')
+      save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't');
+    end
     nout = nout + 1;
 
     % output information
@@ -199,12 +231,12 @@ for i = 1:nstep-1
     fprintf('Year: %i\n', t_years);
     fprintf('Step: %i\n', stepsdone);
     fprintf('Average steps/year: %.0f\n', stepsdone/t_years);
-    fprintf('Wall time per %i years: %0.f s\n\n', outputinterval/60/60/24/365, laptime);
+    fprintf('Wall time per %i years: %0.f s\n\n', output_interval/60/60/24/365, laptime);
     etime = toc;
   end
 
-  % stop at stopyear
-  if t_years == stopyear
+  % stop at stop_time
+  if t == input.stop_time
     break;
   end
 end
@@ -216,5 +248,5 @@ fprintf('Total wall time\t\t\t%.1f s\n',etime);
 fprintf('Total model time\t\t%.1f years\n', t_years);
 fprintf('Number of model steps\t\t%i steps\n',stepsdone);
 fprintf('Average wall time per step\t%.2f s\n',etime/(stepsdone));
-fprintf('Average wall time per %i years\t%0.2f s\n', outputinterval/60/60/24/365, ...
-  etime/t*outputinterval);
+fprintf('Average wall time per %i years\t%0.2f s\n', output_interval/60/60/24/365, ...
+  etime/t*output_interval);
