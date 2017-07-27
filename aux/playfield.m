@@ -1,4 +1,4 @@
-function [] = playfield(inputfield, pauselength, interval)
+function [] = playfield(inputfield, pauselength, interval, loops)
 % This function plays the field that is passed, usually Tout.
 %
 % Timothy Crone (tjcrone@gmail.com)
@@ -19,6 +19,14 @@ if isempty(interval)
   interval = 1;
 end
 
+% set default loops
+if ~exist('loops', 'var')
+  loops = 1;
+end
+if isempty(loops)
+  loops = 1;
+end
+
 % get length of input field that is filled (non-zero)
 inputlength = max(find(squeeze(max(max(inputfield)))));
 
@@ -35,12 +43,15 @@ colormap(jet);
 colorbar;
 title('1');
 drawnow;
-pause(pauselength);
+pause(0.5);
 
 % loop
-for i=1+interval:interval:inputlength
-  set(im1,'cdata',inputfield(:,:,i));
-  title(i);
-  drawnow;
-  pause(pauselength);
+for j = 1:loops
+  for i=1+interval:interval:inputlength
+    set(im1,'cdata',inputfield(:,:,i));
+    title(i);
+    drawnow;
+    pause(pauselength);
+  end
+pause(1);
 end
