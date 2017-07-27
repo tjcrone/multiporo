@@ -12,7 +12,12 @@ for file = files'
   slashloc = findstr('/',basename);
   dirname = basename(1:slashloc(end));
   filename = [dirname, file.name];
-  load(filename);
+  try
+    load(filename);
+  catch
+    disp(sprintf('Error: %s appears to be corrupt.', filename));
+    return
+  end
   if i==1
     output.Tout = T2;
     output.rhofout = rhof2;
