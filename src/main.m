@@ -34,13 +34,10 @@ if isempty(TT)
     load('../hydrotables/hydrotab8.mat');
 end
 
-% calculate starting pressure field if not defined
-if ~isfield(input, 'P')
-  [P1,Pbound,dPdzbound,rhobound] = initp(nx,nz,T1,Tbt,Tbb,Ptop,g,d);
-else
+% calculate starting pressure field and boundary information
+[P1,Pbound,dPdzbound,rhobound] = initp(nx,nz,T1,Tbt,Tbb,Ptop,g,d);
+if isfield(input, 'P')
   P1 = input.P;
-  Pbound = input.Pbound;
-  dPdzbound = input.dPdzbound;
 end
 
 % compute T-P dependent fluid properties (t=1)
@@ -78,6 +75,9 @@ T2 = T1;
 
 % store t=1 output
 t = 0;
+if isfield(input, 't')
+  t = input.t;
+end
 outfilename = [outfilenamebase, sprintf('_out_%010.0f.mat', t)];
 
 if strcmp(input.model_type,'cracking_convection')
