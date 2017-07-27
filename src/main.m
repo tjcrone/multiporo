@@ -35,7 +35,7 @@ if isempty(TT)
 end
 
 % calculate starting pressure field if not defined
-if ~exist('init.P')
+if ~isfield(input, 'P')
   [P1,Pbound,dPdzbound,rhobound] = initp(nx,nz,T1,Tbt,Tbb,Ptop,g,d);
 else
   P1 = input.P;
