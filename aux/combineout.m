@@ -1,11 +1,10 @@
 function [output] = combineout(basename)
-% This function combines the new output files into merged variables with the
-% same names as the old output file format.
+% This function combines the new output files into a merged
+% structure for plotting and animations.
 %
-% Examples:
+% Example:
 %
-% >> [Tout, rhofout, cfout, qzout, crackedout, tout] = combineout('/home/tjc/research/crackingfronts/in_out/k215e16/k215e16_stead03_out_*');
-% >> [Tout, rhofout, cfout, qzout, crackedout, tout] = combineout('/home/tjc/research/crackingfronts/in_out/k215e16/k215e16_crack03_out_*');
+% >> output = combineout('~/research/crackingfronts/in_out/k215e16/k215e16_stead03_out_*');
 
 files = dir(basename);
 i = 1;
