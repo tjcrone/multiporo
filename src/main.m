@@ -77,9 +77,8 @@ P2 = P1;
 T2 = T1;
 
 % store t=1 output
-t_years = 0;
-outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
 t = 0;
+outfilename = [outfilenamebase, sprintf('_out_%010.0f.mat', t)];
 
 if strcmp(input.model_type,'cracking_convection')
   save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
@@ -213,9 +212,9 @@ for i = 1:nstep-1
   stepsdone = stepsdone + 1;
 
   % write outputs to file
-  if t2 == output_interval*nout
-    t_years = output_interval*nout/60/60/24/365;
-    outfilename = [outfilenamebase, sprintf('_out_%07.0f.mat', t_years)];
+  if t == output_interval*nout
+    %t_years = output_interval*nout/60/60/24/365;
+    outfilename = [outfilenamebase, sprintf('_out_%010.0f.mat', t)];
 
     if strcmp(input.model_type,'cracking_convection')
       save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
@@ -228,10 +227,10 @@ for i = 1:nstep-1
     laptime = toc-etime;
     slashloc = strfind(outfilename, '/');
     fprintf('\nFile %s saved\n', outfilename(slashloc(end)+1:end));
-    fprintf('Year: %i\n', t_years);
+    %fprintf('Year: %i\n', t_years);
     fprintf('Step: %i\n', stepsdone);
-    fprintf('Average steps/year: %.0f\n', stepsdone/t_years);
-    fprintf('Wall time per %i years: %0.f s\n\n', output_interval/60/60/24/365, laptime);
+    %fprintf('Average steps/year: %.0f\n', stepsdone/t_years);
+    %fprintf('Wall time per %i years: %0.f s\n\n', output_interval/60/60/24/365, laptime);
     etime = toc;
   end
 
