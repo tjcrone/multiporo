@@ -82,10 +82,10 @@ end
 
 % restart stuff
 if isfield(input, 'restart_file')
-  R = load(restartfile, 'T2', 'P2', 't');
-  input.T = T2;
-  input.P = P2;
-  input.t = t;
+  R = load(input.restart_file, 'T2', 'P2', 't');
+  input.T = R.T2;
+  input.P = R.P2;
+  input.t = R.t;
 end
 %  [m, n] = size(R.T2);
 %  if n~=nx
