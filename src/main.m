@@ -77,7 +77,7 @@ t = 0;
 if isfield(input, 't')
   t = input.t;
 end
-outfilename = [outfilenamebase, sprintf('_out_%010.0f.mat', t)];
+outfilename = [outfilenamebase, sprintf('_out_%016.0f.mat', t)];
 if ~isfield(input, 'restart_file')
   if strcmp(input.model_type,'cracking_convection')
     save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
@@ -216,7 +216,7 @@ while 1
 
   % write outputs to file
   if t == output_interval*nout
-    outfilename = [outfilenamebase, sprintf('_out_%010.0f.mat', t)];
+    outfilename = [outfilenamebase, sprintf('_out_%016.0f.mat', t)];
 
     if strcmp(input.model_type,'cracking_convection')
       save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
