@@ -2,9 +2,14 @@
 # This is a Bash script to run main.m from the command line, in the
 # background using Matlab. Pass the fully qualified filename of an
 # input file or several input files as arguments. If -p is passed, 
-# the run will be parallelized.
-#
-# Timothy Crone (tjcrone@gmail.com)
+# the run will be parallelized. Passing -v will print the version
+# number and exit.
+
+# multiporo version
+ver="0.2.0dev"
+
+# source file directory
+source_dir="~/research/multiporo/src"
 
 # parse arguments
 parallel=0
@@ -13,7 +18,7 @@ while [[ $# > 0 ]]; do
   key="$1"
   case $key in
     -v|--version) # show version and exit
-    echo "multiporo v0.2.0dev"
+    echo "multiporo v$VER"
     exit
     ;;
     -p|--parallel) # set parallel flag
@@ -34,6 +39,11 @@ if [[ $numFiles -lt 1 ]]; then
   exit 1
 fi
 
+# if only one input file use "parallel" mode
+if [[ $numFiles -eq 1 ]]; then
+  parallel=1
+fi
+
 # check input files
 for i in $(seq 1 $numFiles); do
   infile=${fileList[$i]}
@@ -46,22 +56,41 @@ done
 # run input files
 for i in $(seq 1 $numFiles); do
   infile=${fileList[$i]}
-  #echo $infile
 
   # create log file and temporary run file
   logfile="${infile%_*}_out.log"
   tmpfile=`mktemp $infile.XXXXXX`
 
   # populate temporary file
-  echo "main('$infile');" > $tmpfile
+  echo "cd $source_dir;" > $tmpfile
+  echo "main('$infile');" >> $tmpfile
 
-  # run matlab in background in parallel or sequentially
+  # output some information to the log file
+  git_hash=`git rev-parse HEAD`
+  current_time=`date`
+  echo "*** MULTIPORO LOG FILE ***" > $logfile
+  echo >> $logfile
+  echo "Starting multiporo at $current_time" >> $logfile
+  echo "version: v$ver" >> $logfile
+  echo "hash: $git_hash" >> $logfile
+  echo "input: $infile" >> $logfile
+  echo >> $logfile
+  echo "*** INPUT FILE ***" >> $logfile
+  echo >> $logfile
+  cat $infile >> $logfile
+  echo >> $logfile
+  echo "*** MATLAB OUTPUT ***" >> $logfile
+  echo >> $logfile
+
+  # run matlab in background
   EXE=`which matlab`
-  nohup $EXE -nodesktop -nosplash < $tmpfile > $logfile 2>&1 &
-  if [[ parallel -eq "0" ]]; then
-    wait
-  fi
+  nohup $EXE -nodesktop -nosplash < $tmpfile >> $logfile 2>&1 &
 
   # delete temporary file
   rm $tmpfile
+
+  # wait if running inputs sequentially
+  if [[ parallel -eq "0" ]]; then
+    wait
+  fi
 done
