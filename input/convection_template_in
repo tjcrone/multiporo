@@ -10,9 +10,9 @@ model_type		convection
 stepper_type		'dT'
 maxdT			10
 output_interval		3600*24*365 % interval of output files (seconds)
-stop_time		3600*24*365*100
+stop_time		3600*24*365*800
 increase_interval	10
-initial_dt		3600*24
+initial_dt		3600*24*365
 
 % uniform time stepper
 %stepper_type		'uniform'
@@ -20,9 +20,9 @@ initial_dt		3600*24
 %dt			3600
 
 % geometry
-nx			250 % number of grid cells in x-direction (columns)
-nz			250 % number of grid cells in z-direction (rows)
-d			2 % grid cell size (uniform grid, meters)
+nx			50 % number of grid cells in x-direction (columns)
+nz			50 % number of grid cells in z-direction (rows)
+d			10 % grid cell size (uniform grid, meters)
 
 % temperature field
 T_type			'uniform'
