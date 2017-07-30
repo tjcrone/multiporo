@@ -121,26 +121,33 @@ while 1
     j = j + 1;
     if i == 1
       dt = input.initial_dt;
-      fprintf('Starting dt: %0.6f h\n', dt/60/60);
+      fprintf('\n%8.0f  Setting dt to %0.2f h\n', stepsdone, dt/60/60);
     end
 
     if dtadjust == 1
       dt = dtlast;
       dtadjust = 0;
-      fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+      fprintf('%8.0f  Returning dt to %0.2f h (t = %0.2f y)\n', ...
+        stepsdone, dt/60/60, t/60/60/24/365);
     end
 
     if Tmax > input.Thot + 1 || dTmax > input.maxdT
       dt = dt*0.8;
-      fprintf('Reducing dt to: %0.6f h\n', dt/60/60);
-      fprintf('Tmax: %0.2f\n', Tmax);
-    elseif j >= input.increase_interval
+      fprintf('%8.0f  Reducing dt to %0.4f h (Tmax: %0.2f)\n', ...
+         stepsdone, dt/60/60, Tmax);
+    elseif j >= input.increase_interval && dt < output_interval
       dt = dt*1.1;
       if dt > output_interval
         dt = output_interval;
       end
       j = 0;
-      fprintf('Increasing dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+      if dt == output_interval
+        fprintf('%8.0f  Increasing dt to the maximum of %0.2f h\n', ...
+          stepsdone, dt/60/60);
+      else
+        fprintf('%8.0f  Increasing dt to %0.2f h (t = %0.2f y)\n', ...
+          stepsdone, dt/60/60, t/60/60/24/365);
+      end
     end
     t2 = t+dt;
 
@@ -150,7 +157,8 @@ while 1
       dtadjust = 1;
       t2 = output_interval*nout;
       dt = t2-t;
-      fprintf('Adjusting dt to %0.4f hours at t = %0.2f years\n', dt/60/60, t/60/60/24/365);
+      fprintf('%8.0f  Reducing dt to %0.2f h for save\n', stepsdone, ...
+        dt/60/60);
     end
   end
 
@@ -228,9 +236,8 @@ while 1
     % output information
     laptime = toc-etime;
     slashloc = strfind(outfilename, '/');
-    fprintf('\nFile %s saved\n', outfilename(slashloc(end)+1:end));
-    %fprintf('Year: %i\n', t_years);
-    fprintf('Step: %i\n', stepsdone);
+    fprintf('%8.0f  Saving %s (t = %0.2f y)\n', ...
+      stepsdone, outfilename(slashloc(end)+1:end), t/60/60/24/365);
     %fprintf('Average steps/year: %.0f\n', stepsdone/t_years);
     %fprintf('Wall time per %i years: %0.f s\n\n', output_interval/60/60/24/365, laptime);
     etime = toc;
