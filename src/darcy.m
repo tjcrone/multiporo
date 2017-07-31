@@ -13,15 +13,20 @@ if isempty(TT)
 end
 
 % compute interface viscosities from mu
-[mux,muz] = interfacemean(mu);
+[mux, muz] = interfacemean(mu);
+[mux_periodic, ~] = interfacemean([mu(:,end) mu(:,1)];
+
+keyboard;
 
 % compute interface permeabilities
-[kxx,dummy] = interfacemean(kx);
-[dummy,kzz] = interfacemean(kz);
+[kxx, ~] = interfacemean(kx);
+[~, kzz] = interfacemean(kz);
+[kxx_periodic, ~] = interfacemean([kx(:,end) kx(:,1)];
 
 % compute the internal interface darcy velocities
 qx = -kxx(:,2:end-1)./mux(:,2:end-1) .* (P(:,2:end) - P(:,1:end-1)) ./ d;
-qz = -kzz(2:end-1,:)./muz(2:end-1,:) .* ((P(2:end,:) - P(1:end-1,:))./d - g/2*(rhof(2:end,:)+rhof(1:end-1,:)));
+qz = -kzz(2:end-1,:)./muz(2:end-1,:) .* ((P(2:end,:) - P(1:end-1,:))./d - ...
+  g/2*(rhof(2:end,:)+rhof(1:end-1,:)));
 
 % pad qx and qz with dummy values to accept boundary velocities
 qx = [zeros(nz,1) qx zeros(nz,1)];
@@ -32,17 +37,21 @@ qz = [zeros(1,nx);qz;zeros(1,nx)];
 nloc = find(Pbr(:,2)==0); %neumann boundary condition locations
 dloc = find(Pbr(:,2)==1); %dirichlet boundary condition locations
 floc = find(Pbr(:,2)==2); %flux boundary conditions
+ploc = find(Pbr(:,2)==3); %periodic side boundary conditions
 qx(nloc,end) = -kxx(nloc,end)./mux(nloc,end) .* (Pbr(nloc,1));
 qx(dloc,end) = -kxx(dloc,end)./mux(dloc,end) .* (Pbr(dloc,1)-P(dloc,end))./(d/2);
 qx(floc,end) = Pbr(floc,1);
+qx(ploc,end) = kxx_periodic(ploc)./mux(ploc) .* (P(:,1) - P(:,end)) ./ d;
 
 % left Side:
 nloc = find(Pbl(:,2)==0); %neumann boundary condition locations
 dloc = find(Pbl(:,2)==1); %dirichlet boundary condition locations
 floc = find(Pbl(:,2)==2); %flux boundary conditions
+ploc = find(Pbl(:,2)==3); %periodic side boundary conditions
 qx(nloc,1) = -kxx(nloc,1)./mux(nloc,1) .* (Pbl(nloc,1));
 qx(dloc,1) = -kxx(dloc,1)./mux(dloc,1) .* (P(dloc,1) - Pbl(dloc,1))./(d/2);
 qx(floc,1) = Pbl(floc,1);
+qx(ploc,1) = -qx(ploc,end);
 
 % top:
 nloc = find(Pbt(2,:)==0); %neumann boundary condition locations

@@ -46,7 +46,6 @@ A = spdiags([99999;salpha(1:end-1)],1,A);
 nalpha = reshape(nalpha,nx*nz,1);
 A = spdiags([nalpha(2:end);99999],-1,A);
 
-
 %compute hydrostatic vector (B)
 %compute density at top using Pbt and T(1,:)
 rhotop = interptim(PP,TT,RHO,Pbt(1,:)./100000,T(1,:));

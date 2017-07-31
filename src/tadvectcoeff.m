@@ -12,7 +12,7 @@ function [B,D] = tadvectcoeff(nx,nz,d,qx,qz,rhof,cf, ...
 %tau = calctau(T,phi,rhof,cf,rhos,cs,drhodT2,dcfdT2);
 alpha = rhof.*cf;
 
-%build logical masks
+% build logical masks
 eposmask = qx(:,2:end)>=0;
 enegmask = qx(:,2:end)<0;
 wposmask = qx(:,1:end-1)>=0;
@@ -22,7 +22,7 @@ nnegmask = qz(1:end-1,:)<0;
 sposmask = qz(2:end,:)>=0;
 snegmask = qz(2:end,:)<0;
 
-%compute matrices with elements of B
+% compute matrices with elements of B
 eout = -alpha.*qx(:,2:end).*eposmask./d;
 sout = -alpha.*qz(2:end,:).*sposmask./d;
 wout = alpha.*qx(:,1:end-1).*wnegmask./d;
@@ -33,7 +33,7 @@ sin = [-alpha(2:end,:).*qz(2:end-1,:);zeros(1,nx)].*snegmask./d;
 win = [zeros(nz,1) alpha(:,1:end-1).*qx(:,2:end-1)].*wposmask./d;
 nin = [zeros(1,nx);alpha(1:end-1,:).*qz(2:end-1,:)].*nposmask./d;
 
-%reshape element matrices and fill B
+% reshape element matrices and fill B
 B = spdiags(reshape(allout,nx*nz,1),0,nx*nz,nx*nz);
 B(nz+1,1) = eps;
 ein = [ein(:,end);reshape(ein(:,1:end-1),(nx-1)*nz,1)];
@@ -45,19 +45,20 @@ B = spdiags([nin(2:end);99999],-1,B);
 win = [reshape(win(:,2:end),(nx-1)*nz,1);win(:,1)];
 B = spdiags(win,-nz,B);
 
-%create D with boundary info
+% create D with boundary info
 D = zeros(nz,nx);
-%left(east)
-D(:,1) = cfbl.*Tbl(:,1).*rhobl.*qx(:,1).*wposmask(:,1)./d;
-%right(west)
-D(:,end) = D(:,end) + cfbr.*Tbr(:,1).*rhobr.*-qx(:,end).* ...
-    enegmask(:,end)./d;
-%top(north)
-D(1,:) = D(1,:) + cfbt.*Tbt(1,:).*rhobt.*qz(1,:).* ...
-    nposmask(1,:)./d;
-%bottom(south)
-D(end,:) = D(end,:) + cfbb.*Tbb(1,:).*rhobb.*-qz(end,:).* ...
-    snegmask(end,:)./d;
 
-%and reshape D
+% left (west)
+D(:,1) = cfbl.*Tbl(:,1).*rhobl.*qx(:,1).*wposmask(:,1)./d;
+
+% right (east)
+D(:,end) = D(:,end) + cfbr.*Tbr(:,1).*rhobr.*-qx(:,end).*enegmask(:,end)./d;
+
+% top (north)
+D(1,:) = D(1,:) + cfbt.*Tbt(1,:).*rhobt.*qz(1,:).*nposmask(1,:)./d;
+
+% bottom (south)
+D(end,:) = D(end,:) + cfbb.*Tbb(1,:).*rhobb.*-qz(end,:).*snegmask(end,:)./d;
+
+% and reshape D
 D = reshape(D,nx*nz,1);
