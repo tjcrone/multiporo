@@ -78,7 +78,7 @@ end
 %nuu = ones(nz,nx)*0.2498511904; % undrained Poisson's ratio
 %Tvp = 600; %temperature condition for p-wave value
 %Pvp = 30e6; %pressure condition (Pa) for p-wave value
-%[G,K,Ku,lamdal,nu,biot,gamma,Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,Pvp);
+%[G,K,Ku,lamdal,nu,biot,gamma,Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,Pvp, input.thermo_tables);
 
 % restart stuff
 if isfield(input, 'restart_file')

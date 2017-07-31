@@ -30,7 +30,7 @@ lambdam = input.lambdam;
 % globalize thermodynamic tables
 global TT PP RHO CP
 if isempty(TT)
-    load('../hydrotables/hydrotab8.mat');
+    load(input.thermo_tables);
 end
 
 % calculate starting pressure field and boundary information
@@ -56,7 +56,7 @@ cfbr = interptim(PP,TT,CP,P1(:,end)./100000,Tbr(:,1));
 cfbl = interptim(PP,TT,CP,P1(:,1)  ./100000,Tbl(:,1));
 
 % compute darcy velocities (t=1)
-[qx1,qz1] = darcy(nx,nz,P1,rhof1,rhobb,kx,kz,mu1,g,d,Pbt,Pbb,Pbr,Pbl,T1);
+[qx1,qz1] = darcy(nx,nz,P1,rhof1,rhobb,kx,kz,mu1,g,d,Pbt,Pbb,Pbr,Pbl,T1,input.thermo_tables);
 
 % get output filename base
 underloc = strfind(inputfile, '_');
@@ -194,11 +194,11 @@ while 1
   mu2 = dynvisc(T2);
   rhof2 = interptim(PP,TT,RHO,P2./100000,T2); %fluid density
   cf2 = interptim(PP,TT,CP,P2./100000,T2); %fluid heat capacity
-  [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2);
+  [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2,input.thermo_tables);
 
   % compute P2 using implicit technique
   [AimpP,BimpP,CimpP] = pstiff(nx,nz,d,Se2,rhof2,rhobt,rhobb,rhobr,rhobl, ...
-    qx2,qz2,kx,kz,mu2,g,T2,Pbt,Pbb,Pbr,Pbl);
+    qx2,qz2,kx,kz,mu2,g,T2,Pbt,Pbb,Pbr,Pbl,input.thermo_tables);
 
   % single step implicit left hand side stiffness:
   Pstiffness = AimpP;
@@ -214,7 +214,7 @@ while 1
   mu2 = dynvisc(T2);
   rhof2 = interptim(PP,TT,RHO,P2./100000,T2); %fluid density
   cf2 = interptim(PP,TT,CP,P2./100000,T2); %fluid heat capacity
-  [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2);
+  [qx2,qz2] = darcy(nx,nz,P2,rhof2,rhobb,kx,kz,mu2,g,d,Pbt,Pbb,Pbr,Pbl,T2,input.thermo_tables);
 
   % shift variables
   P1 = P2;

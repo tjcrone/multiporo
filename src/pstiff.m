@@ -1,5 +1,5 @@
 function [A,B,C] = pstiff(nx,nz,d,Se,rhof,rhobt,rhobb,rhobr, ...
-    rhobl,qx,qz,kx,kz,mu,g,T,Pbt,Pbb,Pbr,Pbl,biot,dexdt,dezdt)
+    rhobl,qx,qz,kx,kz,mu,g,T,Pbt,Pbb,Pbr,Pbl,biot,dexdt,dezdt,thermo_tables)
 %this function builds matrix and column vector coefficients that
 %are needed to solve the implicit form of the pressure equation.
 %this formulation assumes no flow side boundaries, dirichlet top
@@ -8,7 +8,7 @@ function [A,B,C] = pstiff(nx,nz,d,Se,rhof,rhobt,rhobb,rhobr, ...
 %load or globalize thermodynamic tables
 global TT PP RHO CP
 if isempty(TT)
-    load('../hydrotables/hydrotab8.mat');
+    load(thermo_tables);
 end
 
 %Compute interface viscosities from mu

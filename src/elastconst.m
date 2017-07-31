@@ -1,4 +1,4 @@
-function [G,K,Ku,lamdal,nu,biot,gamma, Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,Pvp)
+function [G,K,Ku,lamdal,nu,biot,gamma, Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,Pvp,thermo_tables)
 %This function computes all of the needed drained moduli for the
 %poroelastic convection code.  This function uses the undrained (in situ)
 %seismic parameters Vpu and nuu, and assumes that the pore fluid to obtain
@@ -20,8 +20,7 @@ function [G,K,Ku,lamdal,nu,biot,gamma, Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,
 %load or globalize thermodynamic tables
 global TT PP RHO CP BETA
 if isempty(TT)
-  %load('../hydrotables/hydrotab8.mat');
-  load('../../Hydro/hydrotab5.mat');
+  load(thermo_tables);
 end
 
 %determine the cold fluid properties

@@ -1,4 +1,4 @@
-function [qx,qz] = darcy(nx,nz,P,rhof,rhobb,kx,kz,mu,g,d,Pbt,Pbb,Pbr,Pbl,T)
+function [qx,qz] = darcy(nx,nz,P,rhof,rhobb,kx,kz,mu,g,d,Pbt,Pbb,Pbr,Pbl,T,thermo_tables)
 %This function computes the Darcy velocities in the x and z
 %directions on the interfaces of control volumes in the model
 %domain.  Model grid spacing must be uniform and specified by
@@ -9,7 +9,7 @@ function [qx,qz] = darcy(nx,nz,P,rhof,rhobb,kx,kz,mu,g,d,Pbt,Pbb,Pbr,Pbl,T)
 %load or globalize thermodynamic tables
 global TT PP RHO CP
 if isempty(TT)
-   load('../hydrotables/hydrotab8.mat');
+   load(thermo_tables);
 end
 
 % compute interface viscosities from mu
