@@ -35,7 +35,11 @@ if strcmp(input.permeability_type, 'uniform')
   input.kz = ones(input.nz, input.nx)*input.kz_1;
 elseif strcmp(input.permeability_type, 'fault')
   % J.-A. Olive, 7/31/17 permeability structure with fault
-  [input.kx,input.kz] = fault_permeability(input);
+  [kx,kz] = fault_permeability(input);
+  save('test','kx')
+  
+  input.kx=kx;
+  input.kz=kz;
  
 end
 
