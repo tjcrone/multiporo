@@ -9,7 +9,8 @@
 ver="0.2.0dev"
 
 # source file directory
-source_dir="~/research/multiporo/src"
+#source_dir="~/research/multiporo/src"
+source_dir="~/Desktop/Hydrothermal_Circulation/Analog_models_of_convection/NUMERICAL_MODELS/multiporo/src"
 
 # parse arguments
 parallel=0
