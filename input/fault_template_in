@@ -4,11 +4,7 @@
 model_type		convection
 
 % thermo tables
-%thermo_tables		'~/research/multiporo/hydrotables/hydrotab8.mat'
-thermo_tables		'~/Desktop/Hydrothermal_Circulation/Analog_models_of_convection/NUMERICAL_MODELS/multiporo/hydrotables/hydrotab8.mat'
-
-% restart file
-%restart_file		'~/research/multiporo/input/convection_template_out_0622944000.mat'
+thermo_tables		'~/research/multiporo/hydrotables/hydrotab8.mat'
 
 % temperature-based time stepper
 stepper_type		'dT'
@@ -17,11 +13,6 @@ output_interval		3600*24*365 % interval of output files (seconds)
 stop_time		3600*24*365*800
 increase_interval	10
 initial_dt		3600*24*365
-
-% uniform time stepper
-%stepper_type		'uniform'
-%nstep			100
-%dt			3600
 
 % geometry
 nx			50 % number of grid cells in x-direction (columns)
@@ -32,18 +23,17 @@ d			10 % grid cell size (uniform grid, meters)
 T_type			'uniform'
 T			0
 Thot            	100 % temperature (C)
-%Tcold           	0 % temperature (C)
 
 % permeability field
 permeability_type	'fault'
-k_fault         1e-10
-k_bg            1e-11
-fault_xs        300
-fault_dip       45
-fault_depth     1000
-fault_width     50
-kx_1			1e-11 % permeability in the x-direction (m^2)
-kz_1			1e-11 % permeability in the z-direction (m^2)
+kx			1e-11
+kz			1e-11
+kx_fault		1e-10
+kz_fault		1e-10
+fault_xs		300
+fault_dip		45
+fault_depth		1000
+fault_width		50
 
 % pressure boundary conditions
 Ptop_type		'constant'
@@ -52,7 +42,6 @@ Ptop			20e6 % (Pa)
 % temperature boundary conditions
 Tbottom_type		1 % 0=Neumann, 1=Dirichlet
 Tbottom_value		100 % temperature (C) at or heat flux (W/m) through bottom boundary
-
 Ttop_type		1 % 0=Neumann, 1=Dirichlet
 Ttop_value		0 % temperature (C) at or heat flux (W/m) through bottom boundary
 Ttop_conduction		1 % set to unity for conduction on top boundary
@@ -69,14 +58,3 @@ phi			0.03 % porosity (fraction)
 
 % other constants
 g = 9.8; % gravitational constant
-
-% cracking parameters (if model type is cracking, these are required)
-%frontdepth		1000 % depth to starting cracking front (m)
-%kon			2.15e-16 % permeability of cracked lithosphere (m^2)
-%koff			1e-32 % permeability of uncracked lithosphere (m^2)
-%Apress			0.028
-%Atemp			4962.3
-%KIc			1e6
-%Pw			200e5
-%Tve			900
-%rhoR			2900
