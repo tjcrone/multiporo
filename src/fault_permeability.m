@@ -10,10 +10,8 @@ kx = ones(input.nz, input.nx)*input.k_bg;
 kz = ones(input.nz, input.nx)*input.k_bg;
 
 % construct an array of "distance to the fault line"
-DF = abs( tand(input.fault_dip).*input.X  + input.Z - tand(input.fault_dip)*input.fault_xs) ./ sqrt(1+tand(input.fault_dip).^2);
+fault_distance = abs( tand(input.fault_dip).*input.X  + input.Z - ...
+  tand(input.fault_dip)*input.fault_xs) ./ sqrt(1+tand(input.fault_dip).^2);
 
-kx(DF<=input.fault_width/2 & input.Z<=input.fault_depth) = input.k_fault;
-kz(DF<=input.fault_width/2 & input.Z<=input.fault_depth) = input.k_fault;
-
-end
-
+kx(fault_distance<=input.fault_width/2 & input.Z<=input.fault_depth) = input.k_fault;
+kz(fault_distance<=input.fault_width/2 & input.Z<=input.fault_depth) = input.k_fault;
