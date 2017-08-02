@@ -4,8 +4,7 @@
 model_type		convection
 
 % thermo tables
-%thermo_tables		'~/research/multiporo/hydrotables/hydrotab8.mat'
-thermo_tables		'~/Desktop/Hydrothermal_Circulation/Analog_models_of_convection/NUMERICAL_MODELS/multiporo/hydrotables/hydrotab8.mat'
+thermo_tables		'~/research/multiporo/hydrotables/hydrotab8.mat'
 
 % restart file
 %restart_file		'~/research/multiporo/input/convection_template_out_0622944000.mat'
