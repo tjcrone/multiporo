@@ -117,7 +117,7 @@ while 1
   if strcmp(input.stepper_type,'dT')
     j = j + 1;
     if i == 1
-      dt = input.initial_dt;
+      dt = input.output_interval;
       fprintf('\n%8.0f  Setting dt to %0.2f h\n', stepsdone, dt/60/60);
     end
 

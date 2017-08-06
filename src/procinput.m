@@ -110,8 +110,7 @@ if isfield(input, 'restart_file')
       end
       input.T = R.T2(1+floor((0:input.nx-1)/(d/input.d)),1+floor((0:input.nx-1)/(d/input.d)));
       input.P = R.P2(1+floor((0:input.nx-1)/(d/input.d)),1+floor((0:input.nx-1)/(d/input.d)));
-    if strcmp(input.resize_type, 'crack') % cracking-front-type vertical expansion
-
+    elseif strcmp(input.resize_type, 'crack') % cracking-front-type vertical expansion
       if input.nx ~= nx
         error('Restarted temperature field must have the same number of columns.');
       end
