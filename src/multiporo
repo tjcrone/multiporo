@@ -60,19 +60,11 @@ for i in $(seq 1 $numFiles); do
   fi
 done
 
-# define tab based on os
-os=`uname`
-if [[ "$os" == 'Linux' ]]; then
-  tab="\t"
-elif [[ "$os" == 'Darwin' ]]; then
-  tab="	"
-fi
-
 # function to extract parameter from input file
 function extract_param() {
   eval $2=`grep "^$2" "$1" | \
     sed -E "s/\%.*$/ /g" | \
-    sed -E "s/$tab/ /g" | \
+    sed -E "s/	/ /g" | \
     sed -E "s/=/ /g" | \
     sed -E "s/'//g" | \
     tr -s " " | \
