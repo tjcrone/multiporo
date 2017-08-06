@@ -24,8 +24,8 @@ T			0 % temperature for uniform field (C)
 
 % permeability field
 permeability_type	'uniform'
-kx_1			1e-11 % permeability in the x-direction (m^2)
-kz_1			1e-11 % permeability in the z-direction (m^2)
+kx			1e-11 % permeability in the x-direction (m^2)
+kz			1e-11 % permeability in the z-direction (m^2)
 
 % pressure boundary conditions
 Ptop_type		'constant'

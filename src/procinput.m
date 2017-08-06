@@ -29,8 +29,8 @@ end
 
 % build out permeability field
 if strcmp(input.permeability_type, 'uniform')
-  input.kx = ones(input.nz, input.nx)*input.kx_1;
-  input.kz = ones(input.nz, input.nx)*input.kz_1;
+  input.kx = ones(input.nz, input.nx)*input.kx;
+  input.kz = ones(input.nz, input.nx)*input.kz;
 elseif strcmp(input.permeability_type, 'fault')
   [input.kx, input.kz] = fault_permeability(input);
 end
