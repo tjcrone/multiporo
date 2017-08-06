@@ -26,17 +26,14 @@ rhom = input.rhom;
 cm = input.cm;
 phi = input.phi;
 lambdam = input.lambdam;
+P1 = input.P;
+Pbound = input.Pbound;
+rhobound = input.rhobound;
 
 % globalize thermodynamic tables
 global TT PP RHO CP
 if isempty(TT)
     load(input.thermo_tables);
-end
-
-% calculate starting pressure field and boundary information
-[P1,Pbound,dPdzbound,rhobound] = initp(nx,nz,T1,Tbt,Tbb,Ptop,g,d);
-if isfield(input, 'P')
-  P1 = input.P;
 end
 
 % compute T-P dependent fluid properties (t=1)
@@ -80,9 +77,9 @@ end
 outfilename = [outfilenamebase, sprintf('_out_%016.0f.mat', t)];
 if ~isfield(input, 'restart_file')
   if strcmp(input.model_type,'cracking_convection')
-    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
+    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't', 'd');
   elseif strcmp(input.model_type,'convection')
-    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't');
+    save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't', 'd');
   end
 end
 nout = t/output_interval+1;
@@ -227,9 +224,9 @@ while 1
     outfilename = [outfilenamebase, sprintf('_out_%016.0f.mat', t)];
 
     if strcmp(input.model_type,'cracking_convection')
-      save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't');
+      save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't', 'd');
     elseif strcmp(input.model_type,'convection')
-      save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't');
+      save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 't', 'd');
     end
     nout = nout + 1;
 

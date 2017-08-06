@@ -15,8 +15,6 @@ for i = 1:length(s{1})
   catch
     eval(sprintf('input.%s = ''%s'';', s{1}{i}, s{2}{i})); % else read line as string
   end
-  % assign into caller workspace (not used)
-  %eval(sprintf('assignin(''caller'', ''%s'', %s)', s{1}{i}, s{1}{i})); 
 end
 
 % build out domain geometry
@@ -41,6 +39,7 @@ end
 if strcmp(input.T_type, 'uniform')
   input.T = ones(input.nz, input.nx)*input.T;
 end
+
 %rng('default');
 %T = Z*0+Tcold+rand(nz,nx)*Thot/2;
 %T = repmat(-sin(linspace(0,1,nx)*2*pi*8.5)*(min(min(Z/(d*nz)*Thot))), nz,1) + ...
@@ -66,7 +65,8 @@ if ~isfield(input, 'nstep')
 end
 
 % starting pressure field
-%[P,Pbound,dPdzbound,rhobound] = initp(nx,nz,T,Tbt,Tbb,Ptop,TT, PP,RHO,g,d);
+[input.P,input.Pbound,~,input.rhobound] = initp(input.nx,input.nz,input.T, ...
+  input.Tbt,input.Tbb,input.Ptop,input.g,input.d,input.thermo_tables);
 
 % cracked stuff
 %cracked = logical(Z*0+1);
@@ -82,53 +82,44 @@ end
 %Pvp = 30e6; %pressure condition (Pa) for p-wave value
 %[G,K,Ku,lamdal,nu,biot,gamma,Se] = elastconst(Vpu,nuu,phi,Ks,rhom,Tvp,Pvp, input.thermo_tables);
 
-% restart stuff
+% restart options
 if isfield(input, 'restart_file')
-  R = load(input.restart_file, 'T2', 'P2', 't');
-  input.T = R.T2;
-  input.P = R.P2;
+  R = load(input.restart_file, 'T2', 'P2', 't', 'd');
+  [nz, nx] = size(R.T2);
+  d = R.d;
+
+  % restart time
   input.t = R.t;
+  if isfield(input, 'stop_time')
+    if input.stop_time <= input.t
+      error('Input ''stop_time'' must be greater than the time associated with the restart file.');
+    end
+  end
+
+  % resize if necessary
+  if input.nx == nx && input.nz == nz && input.d == d % no resize
+    input.T = R.T2;
+    input.P = R.P2;
+  else % resize
+    if ~isfield(input, 'resize_type')
+      error('When changing geometry the ''resize_type'' variable must be set.');
+    end
+    if strcmp(input.resize_type, 'resolve') % resolve-type resize
+      if input.nx/input.nz ~= nx/nz || d/input.d ~= input.nx/nx
+        error('New geometry incompatible with a resolve-type restart.');
+      end
+      input.T = R.T2(1+floor((0:input.nx-1)/(d/input.d)),1+floor((0:input.nx-1)/(d/input.d)));
+      input.P = R.P2(1+floor((0:input.nx-1)/(d/input.d)),1+floor((0:input.nx-1)/(d/input.d)));
+    if strcmp(input.resize_type, 'crack') % cracking-front-type vertical expansion
+
+      if input.nx ~= nx
+        error('Restarted temperature field must have the same number of columns.');
+      end
+      input.T(1:nz,:) = R.T2;
+      input.P(1:nz,:) = R.P2;
+      % input.cracked(1:m,:) = R.cracked;
+    else
+      error('Input ''resize_type'' not recognized');
+    end
+  end
 end
-%  [m, n] = size(R.T2);
-%  if n~=nx
-%    error('Restarted domains must have the same number of columns as the original.');
-%  end
-%  cracked(1:m,:) = R.cracked;
-%  T(1:m,:) = R.T2;
-  % map Tres onto current geometry if necessary
-  %if sum(size(T)==size(Tres))~=2
-  %  if steady==0
-  %    error('Geometry resizing only allowed when restarting into another steady state run.');
-  %  end
-
-  %if sum(size(T)==size(Tres))~=2 % changing geometry
-  %  [m, n] = size(Tres);
-  %  if n~=nx
-  %    error('Restarted temperature field must have the same number of columns.');
-  %  end
-  %  T(1:m,:) = Tres;
-  %else % same size as restart
-  %  T = Tres;
-  %  cracked(1:m,:) = R.crackedout(:,:,end);
-  %end 
-
-  %[m, n] = size(Tres);
-  %if n~=nx
-  %  error('Restarted temperature field must have the same number of columns.');
-  %end
-%end
-
-% load or globalize thermodynamic tables
-%global TT PP RHO CP
-%if isempty(TT)
-%   load('../hydrotables/hydrotab8.mat');
-%end
-
-%if restart==1
-%  P(1:m,:) = R.P2;
-  %if sum(size(P)==size(Pres))~=2
-   % error('Geometry resizing not yet allowed');
-  %else % same size as restart
-  %  P = Pres;
-  %end 
-%end
