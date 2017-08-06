@@ -84,9 +84,9 @@ if ~isfield(input, 'restart_file')
 end
 nout = t/output_interval+1;
 
-% initialize Tmax and dTmax
-Tmax = max(max(T1));
-dTmax = 0;
+% initialize T_max and dT_max
+T_max = max(max(T1));
+dT_max = 0;
 
 % start timer
 tic;
@@ -128,10 +128,10 @@ while 1
         stepsdone, dt/60/60, t/60/60/24/365);
     end
 
-    if Tmax > input.Thot + 1 || dTmax > input.maxdT
+    if dT_max > input.dT_max
       dt = dt*0.8;
-      fprintf('%8.0f  Reducing dt to %0.4f h (Tmax: %0.2f)\n', ...
-         stepsdone, dt/60/60, Tmax);
+      fprintf('%8.0f  Reducing dt to %0.4f h (T_max: %0.2f)\n', ...
+         stepsdone, dt/60/60, T_max);
     elseif j >= input.increase_interval && dt < output_interval
       dt = dt*1.1;
       if dt > output_interval
@@ -180,10 +180,10 @@ while 1
   T2 = reshape(T2,nz,nx);
   T2(T2<0) = 0; % kluge to prevent negative temperatures
 
-  % if max of T2 is greater than Thot, start step over
-  Tmax = max(max(T2));
-  dTmax = max(max(T2-T1));
-  if Tmax > input.Thot + 1 || dTmax > input.maxdT
+  % if dT_max is out of spec, restart step
+  T_max = max(max(T2));
+  dT_max = max(max(T2-T1));
+  if dT_max > input.dT_max
     continue;
   end
 

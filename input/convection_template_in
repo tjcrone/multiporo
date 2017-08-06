@@ -8,7 +8,7 @@ thermo_tables		'~/research/multiporo/hydrotables/hydrotab8.mat'
 
 % temperature-based time stepper
 stepper_type		'dT'
-maxdT			10
+dT_max			10
 output_interval		3600*24*365 % interval of output files (seconds)
 stop_time		3600*24*365*100
 increase_interval	10
@@ -21,8 +21,7 @@ d			10 % grid cell size (uniform grid, meters)
 
 % temperature field
 T_type			'uniform'
-T			0 % temperature (C)
-Thot            	100 % temperature (C)
+T			0 % temperature for uniform field (C)
 
 % permeability field
 permeability_type	'uniform'
