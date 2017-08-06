@@ -63,7 +63,7 @@ done
 # define tab based on os
 os=`uname`
 if [[ "$os" == 'Linux' ]]; then
-  tab="/t"
+  tab="\t"
 elif [[ "$os" == 'Darwin' ]]; then
   tab="	"
 fi
