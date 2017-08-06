@@ -1,10 +1,14 @@
-% multiporo input file
+% *** MULTIPORO INPUT FILE ***
 
 % model type (convection, poroelastic, poroelastic_convection, cracking_convection)
 model_type		'convection'
 
 % thermo tables
 thermo_tables		'~/research/multiporo/hydrotables/hydrotab8.mat'
+
+% output
+output_dir		'~/research/multiporo/output' % directory for output files
+output_name		'sample_out' % base name of output files
 
 % temperature-based time stepper
 stepper_type		'dT'

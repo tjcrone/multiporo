@@ -17,6 +17,11 @@ for i = 1:length(s{1})
   end
 end
 
+% fix output directory
+if ~strcmp(input.output_dir(end),'/')
+  input.output_dir = [input.output_dir,'/'];
+end
+
 % build out domain geometry
 input.x = linspace(input.d/2, (input.nx-1)*input.d, input.nx);
 input.z = linspace(input.d/2, (input.nz-1)*input.d, input.nz);

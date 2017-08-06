@@ -51,14 +51,49 @@ for i in $(seq 1 $numFiles); do
     echo "Error: $infile is not a valid input file."
     exit 1
   fi
+  # check that first line includes '*** MULTIPORO INPUT FILE ***'
+  head -n1 "$infile" | grep "\*\*\* MULTIPORO INPUT FILE \*\*\*" > /dev/null
+  if [[ $? -ne 0 ]]; then
+    echo "Error: $infile does not appear to be a valid input file."
+    echo "The first line of the file must include '*** MULTIPORO INPUT FILE ***'"
+    exit 1
+  fi
 done
+
+# define tab based on os
+os=`uname`
+if [[ "$os" == 'Linux' ]]; then
+  tab="/t"
+elif [[ "$os" == 'Darwin' ]]; then
+  tab="	"
+fi
+
+# function to extract parameter from input file
+function extract_param() {
+  eval $2=`grep "^$2" "$1" | \
+    sed -E "s/\%.*$/ /g" | \
+    sed -E "s/$tab/ /g" | \
+    sed -E "s/=/ /g" | \
+    sed -E "s/'//g" | \
+    tr -s " " | \
+    cut -d' ' -f2`
+}
 
 # run input files
 for i in $(seq 1 $numFiles); do
   infile=${fileList[$i]}
 
+  # extract output directory and file name from input file
+  extract_param "$infile" output_dir
+  extract_param "$infile" output_name
+
+  # add trailing slash to output_dir if necessary
+  length=${#output_dir}
+  last_char=${output_dir:length-1:1}
+  [[ $last_char != "/" ]] && output_dir="$output_dir/"; :
+
   # create log file and temporary run file
-  logfile="${infile%_*}_out.log"
+  logfile="${output_dir}${output_name}.log"
   tmpfile=`mktemp $infile.XXXXXX`
 
   # populate temporary file

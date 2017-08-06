@@ -55,10 +55,6 @@ cfbl = interptim(PP,TT,CP,P1(:,1)  ./100000,Tbl(:,1));
 % compute darcy velocities (t=1)
 [qx1,qz1] = darcy(nx,nz,P1,rhof1,rhobb,kx,kz,mu1,g,d,Pbt,Pbb,Pbr,Pbl,T1,input.thermo_tables);
 
-% get output filename base
-underloc = strfind(inputfile, '_');
-outfilenamebase = inputfile(1:underloc(end)-1);
-
 % create tentative values at t=2
 rhof2 = rhof1;
 cf2 = cf1;
@@ -74,7 +70,8 @@ t = 0;
 if isfield(input, 't')
   t = input.t;
 end
-outfilename = [outfilenamebase, sprintf('_out_%016.0f.mat', t)];
+outfilename = [input.output_dir, input.output_name, sprintf('_%016.0f.mat', t)];
+
 if ~isfield(input, 'restart_file')
   if strcmp(input.model_type,'cracking_convection')
     save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't', 'd');
@@ -221,7 +218,7 @@ while 1
 
   % write outputs to file
   if t == output_interval*nout
-    outfilename = [outfilenamebase, sprintf('_out_%016.0f.mat', t)];
+    outfilename = [input.output_dir, input.output_name, sprintf('_%016.0f.mat', t)];
 
     if strcmp(input.model_type,'cracking_convection')
       save(outfilename, '-v7.3', 'rhof2', 'cf2', 'T2', 'P2', 'qx2', 'qz2', 'cracked', 't', 'd');
